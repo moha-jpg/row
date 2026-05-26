@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<title>Day · Mohamed's OS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #050506;
+  --card: #0d0d10;
+  --card-2: #14141a;
+  --card-3: #1a1a22;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-2: rgba(255, 255, 255, 0.10);
+  --text: #FAFAFA;
+  --text-2: #B8B6B0;
+  --text-3: #76746E;
+  --dim: #5a5a5a;
+  --dim-2: #3a3a3a;
+  --gold: #d4af37;
+  --gold-bright: #e6c068;
+  --gold-soft: rgba(212, 175, 55, 0.10);
+  --gold-border: rgba(212, 175, 55, 0.25);
+  --success: #6BE3A4;
+  --warning: #F2C063;
+  --danger: #FF6B6B;
+  --blue: #7DD3FC;
+  --purple: #b794f4;
+  --peak: #FF6B6B;
+  --meal: #d4a574;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text-2);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh; position: relative; overflow-x: hidden;
+  padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(212, 175, 55, 0.10), transparent 45%),
+    radial-gradient(circle at 18% 90%, rgba(125, 211, 252, 0.05), transparent 50%);
+  filter: blur(40px); pointer-events: none; z-index: -2;
+}
+::selection { background: var(--gold-soft); color: var(--gold-bright); }
+
+.page { max-width: 900px; margin: 0 auto; }
+
+/* ----- title ----- */
+.dash-title {
+  margin: 0 0 4px;
+  font-size: 26px; font-weight: 700; letter-spacing: -0.025em;
+  background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.dash-sub {
+  font-size: 12px; color: var(--text-3);
+  margin-bottom: 18px; letter-spacing: 0.04em;
+}
+.dash-sub a { color: var(--gold-bright); text-decoration: none; margin-right: 12px; }
+.dash-sub a:hover { text-decoration: underline; }
+
+@media (max-width: 480px) { .dash-title { font-size: 22px; } }
+
+/* ----- date navigator ----- */
+.date-nav {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; margin-bottom: 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.dn-btn {
+  background: var(--card-2); border: 1px solid var(--border);
+  color: var(--text-2); padding: 8px 12px; border-radius: 8px;
+  cursor: pointer; font-size: 12px; font-family: inherit;
+  font-weight: 600; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.dn-btn:hover, .dn-btn:active {
+  background: var(--card-3); border-color: var(--gold); color: var(--gold);
+}
+.dn-btn.today-btn { background: var(--gold-soft); border-color: var(--gold-border); color: var(--gold); }
+.dn-date { flex: 1; display: flex; gap: 10px; align-items: center; justify-content: center; min-width: 0; }
+.dn-label {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text); font-variant-numeric: tabular-nums;
+}
+.dn-badge {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.18em;
+  padding: 3px 8px; border-radius: 4px;
+}
+.dn-badge.today { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold); }
+.dn-badge.past { background: rgba(125,211,252,0.10); color: var(--blue); border: 1px solid rgba(125,211,252,0.4); }
+.dn-badge.future { background: rgba(183,148,244,0.10); color: var(--purple); border: 1px solid rgba(183,148,244,0.4); }
+#dnPicker {
+  background: var(--card-2); border: 1px solid var(--border);
+  color: var(--text); padding: 6px 8px; border-radius: 8px;
+  font-size: 12px; font-family: inherit; outline: none; color-scheme: dark;
+}
+
+/* ----- cards ----- */
+.card {
+  background: linear-gradient(180deg, var(--card) 0%, rgba(13,13,16,0.7) 100%);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; margin-bottom: 16px;
+  position: relative;
+}
+.card-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
+.card-head h2 {
+  margin: 0; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-3);
+  cursor: pointer; user-select: none;
+}
+.card-head h2:hover { color: var(--gold); }
+.card-sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; }
+
+/* ----- big domino ----- */
+.big-domino {
+  background:
+    linear-gradient(135deg, rgba(212,175,55,0.10) 0%, rgba(212,175,55,0.02) 100%),
+    var(--card);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius); padding: 22px;
+  margin-bottom: 16px; position: relative; overflow: hidden;
+}
+.big-domino::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.bd-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--gold);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
+}
+.bd-label::before { content: ''; width: 20px; height: 1px; background: var(--gold); }
+.bd-input {
+  width: 100%; background: transparent; border: none;
+  color: var(--text); font-size: 22px; font-weight: 500;
+  line-height: 1.3; letter-spacing: -0.02em; outline: none;
+  font-family: inherit; padding: 4px 0;
+}
+.bd-input::placeholder { color: var(--text-3); font-weight: 400; }
+.bd-meta { margin-top: 10px; font-size: 11px; color: var(--text-3); font-style: italic; }
+
+/* ----- priorities ----- */
+.priorities { display: flex; flex-direction: column; }
+.priority-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.priority-row:last-child { border-bottom: none; }
+.priority-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--card-2); border: 1px solid var(--border-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--text-3); flex-shrink: 0;
+}
+.priority-row.done .priority-num { background: rgba(107,227,164,0.12); border-color: var(--success); color: var(--success); }
+.priority-row input[type=text] {
+  flex: 1; background: transparent; border: none; color: var(--text);
+  font-size: 16px; outline: none; font-family: inherit; padding: 4px 0;
+}
+.priority-row input[type=text]::placeholder { color: var(--text-3); }
+.priority-row.done input[type=text] { text-decoration: line-through; color: var(--text-3); }
+.check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold); }
+
+/* ----- daily checks ----- */
+.daily-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; }
+.check-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--card-2);
+  border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; user-select: none; transition: all 0.15s;
+  font-size: 13px; -webkit-tap-highlight-color: transparent;
+}
+.check-row:hover, .check-row:active { background: var(--card-3); }
+.check-row.on { background: rgba(107,227,164,0.06); border-color: rgba(107,227,164,0.35); color: var(--success); }
+.check-row span:first-of-type { flex: 1; }
+.streak {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--gold); padding: 2px 7px; border-radius: 3px;
+  background: var(--gold-soft); border: 1px solid var(--gold-border);
+  font-variant-numeric: tabular-nums;
+}
+.streak.zero { opacity: 0; pointer-events: none; }
+.streak.long { background: rgba(255,107,107,0.15); color: var(--danger); border-color: rgba(255,107,107,0.4); }
+
+/* ----- non-zero ----- */
+.non-zero { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.nz-head { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.nz-title { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--warning); }
+.nz-count { font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.nz-count strong { color: var(--success); font-weight: 700; }
+.nz-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.nz-checks .check-row { font-size: 12px; padding: 8px 10px; }
+.nz-foot { margin-top: 10px; font-size: 10px; color: var(--text-3); font-style: italic; }
+
+/* ----- schedule (calendar) ----- */
+.cal-pre {
+  padding: 10px 14px; background: var(--card-2);
+  border: 1px solid var(--border); border-left: 3px solid var(--gold-bright);
+  border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 12px;
+}
+.cal-pre-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.cal-pre-time { color: var(--gold-bright); font-weight: 700; min-width: 44px; font-variant-numeric: tabular-nums; }
+.cal-pre-what { color: var(--gold-bright); font-weight: 600; flex: 1; }
+.cal-pre-note { color: var(--text-3); font-size: 11px; font-style: italic; }
+.cal-grid {
+  position: relative; height: 825px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden;
+}
+.cal-hours { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; border-right: 1px solid var(--border); }
+.cal-hour { position: absolute; right: 6px; font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; letter-spacing: 0.1em; padding-top: 2px; }
+.cal-track { position: absolute; left: 44px; right: 0; top: 0; bottom: 0; background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px); background-size: 100% 50px; }
+.cal-event {
+  position: absolute; left: 5px; right: 5px;
+  border-radius: 5px; padding: 3px 8px;
+  background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--dim);
+  overflow: hidden; transition: all 0.15s; z-index: 1;
+  display: flex; flex-direction: column; justify-content: center; line-height: 1.2;
+}
+.cal-event:hover, .cal-event:active { z-index: 10; background: var(--card-3); box-shadow: 0 6px 20px rgba(0,0,0,0.55); }
+.cal-event-time { font-size: 9px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.cal-event-what { font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-event.prayer { border-left-color: var(--gold-bright); background: linear-gradient(90deg, rgba(230,192,104,0.10), var(--card) 80%); }
+.cal-event.prayer .cal-event-what { color: var(--gold-bright); }
+.cal-event.workout { border-left-color: var(--success); background: linear-gradient(90deg, rgba(107,227,164,0.12), var(--card) 80%); }
+.cal-event.workout .cal-event-what { color: var(--success); font-weight: 600; }
+.cal-event.meal { border-left-color: var(--meal); background: linear-gradient(90deg, rgba(212,165,116,0.10), var(--card) 80%); }
+.cal-event.meal .cal-event-what { color: var(--meal); }
+.cal-event.peak { border-left-color: var(--peak); background: linear-gradient(90deg, rgba(255,107,107,0.10), var(--card) 80%); }
+.cal-event.peak .cal-event-what { color: var(--peak); font-weight: 700; }
+.cal-event.ceo { border-left-color: #ec4899; background: linear-gradient(90deg, rgba(236,72,153,0.14), var(--card) 80%); }
+.cal-event.ceo .cal-event-what { color: #ec4899; font-weight: 700; }
+.cal-event.reset { border-left-color: var(--blue); background: linear-gradient(90deg, rgba(125,211,252,0.10), var(--card) 80%); }
+.cal-event.reset .cal-event-what { color: var(--blue); font-weight: 600; }
+.cal-event.shutdown { border-left-color: var(--purple); background: linear-gradient(90deg, rgba(183,148,244,0.10), var(--card) 80%); }
+.cal-event.shutdown .cal-event-what { color: var(--purple); font-weight: 600; }
+.cal-event.now { outline: 2px solid var(--gold); outline-offset: -2px; box-shadow: 0 0 18px rgba(212,175,55,0.3); z-index: 5; }
+.cal-now-line { position: absolute; left: 44px; right: 0; height: 2px; background: var(--gold); z-index: 8; pointer-events: none; }
+.cal-now-line::before { content: ''; position: absolute; left: -6px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+.cal-now-line::after { content: 'NOW'; position: absolute; right: 6px; top: -9px; font-size: 9px; font-weight: 800; letter-spacing: 0.16em; color: var(--gold); background: var(--bg); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--gold); }
+.sch-foot { margin-top: 14px; font-size: 11px; color: var(--text-3); padding-top: 12px; border-top: 1px solid var(--border); }
+.sch-foot strong { color: var(--peak); font-weight: 600; }
+
+/* ----- ritual cards (meals/reset/shutdown) ----- */
+.ritual-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.ritual-title { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+.ritual-time { font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.ritual-list { list-style: none; padding: 0; margin: 0; }
+.ritual-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border-radius: 6px; cursor: pointer; user-select: none;
+  transition: all 0.15s; font-size: 13px;
+}
+.ritual-item:hover, .ritual-item:active { background: var(--card-2); }
+.ritual-item.on { color: var(--success); }
+.ritual-item.on .ri-text { text-decoration: line-through; opacity: 0.7; }
+.mi-time { color: var(--text-3); font-size: 10px; width: 38px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.ritual-note { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-3); font-style: italic; }
+.meals .ritual-title { color: var(--meal); }
+.reset .ritual-title { color: var(--blue); }
+.shutdown .ritual-title { color: var(--purple); }
+.meals .ritual-item input { accent-color: var(--meal); }
+.reset .ritual-item input { accent-color: var(--blue); }
+.shutdown .ritual-item input { accent-color: var(--purple); }
+
+/* ----- quran ----- */
+.qr-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px; background: var(--card-2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 10px;
+}
+.qr-row label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; }
+.qr-row input { width: 80px; background: transparent; border: none; color: var(--text); text-align: right; font-size: 20px; font-weight: 700; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+.qr-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.qr-stat { background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.qr-stat-label { font-size: 9px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+.qr-stat-value { font-size: 20px; font-weight: 700; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+
+/* ----- journal ----- */
+.journal-prompt { font-size: 12px; color: var(--gold); font-style: italic; margin-bottom: 10px; }
+.journal-area {
+  width: 100%; min-height: 120px;
+  background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); padding: 12px;
+  font-size: 14px; font-family: inherit; line-height: 1.6;
+  outline: none; resize: vertical; transition: all 0.15s;
+}
+.journal-area:focus { border-color: var(--gold); }
+
+/* ----- collapsed ----- */
+.card.collapsed > *:not(.card-head) { display: none !important; }
+.card.collapsed .card-head { margin-bottom: 0; }
+.card-head h2 { padding-right: 18px; position: relative; }
+.card-head h2::after {
+  content: ''; position: absolute; right: 0; top: 50%;
+  width: 6px; height: 6px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: translateY(-65%) rotate(45deg);
+  transition: transform 0.2s; opacity: 0.5;
+}
+.card.collapsed .card-head h2::after { transform: translateY(-30%) rotate(-45deg); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 class="dash-title">Day</h1>
+  <div class="dash-sub">
+    <a href="index.html">← Main</a>
+    <a href="strategy.html">Strategy →</a>
+    <a href="brain.html">Brain →</a>
+    <span style="color: var(--text-3);">· focus · execute · log</span>
+  </div>
+
+  <div class="date-nav">
+    <button class="dn-btn" id="dnPrev">←</button>
+    <div class="dn-date">
+      <span class="dn-label" id="dnLabel">—</span>
+      <span class="dn-badge today" id="dnBadge">TODAY</span>
+    </div>
+    <input type="date" id="dnPicker" />
+    <button class="dn-btn today-btn" id="dnToday">Today</button>
+    <button class="dn-btn" id="dnNext">→</button>
+  </div>
+
+  <div class="big-domino">
+    <div class="bd-label">Today's One Big Domino</div>
+    <input type="text" id="bigDomino" class="bd-input" placeholder="If only one thing gets done today…" autocomplete="off" />
+    <div class="bd-meta">The task that, if done, makes today a win — even if nothing else happens.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Three Priorities</h2><div class="card-sub">Lock these before noon</div></div>
+    <div class="priorities">
+      <div class="priority-row" data-idx="0"><span class="priority-num">1</span><input type="text" class="prio-input" placeholder="Priority one" /><input type="checkbox" class="check prio-check" /></div>
+      <div class="priority-row" data-idx="1"><span class="priority-num">2</span><input type="text" class="prio-input" placeholder="Priority two" /><input type="checkbox" class="check prio-check" /></div>
+      <div class="priority-row" data-idx="2"><span class="priority-num">3</span><input type="text" class="prio-input" placeholder="Priority three" /><input type="checkbox" class="check prio-check" /></div>
+    </div>
+    <div class="daily-checks">
+      <label class="check-row" data-key="fajr"><input type="checkbox" class="check daily-check" /><span>Fajr on time</span></label>
+      <label class="check-row" data-key="gym"><input type="checkbox" class="check daily-check" /><span>Gym</span></label>
+      <label class="check-row" data-key="zipcodes"><input type="checkbox" class="check daily-check" /><span>Zip codes</span></label>
+      <label class="check-row" data-key="aileads"><input type="checkbox" class="check daily-check" /><span>AI leads</span></label>
+      <label class="check-row" data-key="loop"><input type="checkbox" class="check daily-check" /><span>Open loop</span></label>
+      <label class="check-row" data-key="win"><input type="checkbox" class="check daily-check" /><span>Deliberate win</span></label>
+    </div>
+    <div class="non-zero">
+      <div class="nz-head">
+        <span class="nz-title">Non-Zero Day · bad-day fallback</span>
+        <span class="nz-count"><strong id="nzCount">0</strong> / 5</span>
+      </div>
+      <div class="nz-checks">
+        <label class="check-row" data-nz="pray"><input type="checkbox" class="check" /><span>Pray</span></label>
+        <label class="check-row" data-nz="business"><input type="checkbox" class="check" /><span>1 business action</span></label>
+        <label class="check-row" data-nz="meal"><input type="checkbox" class="check" /><span>1 meal / protein</span></label>
+        <label class="check-row" data-nz="loop"><input type="checkbox" class="check" /><span>1 open loop closed</span></label>
+        <label class="check-row" data-nz="plan"><input type="checkbox" class="check" /><span>Plan tomorrow</span></label>
+      </div>
+      <div class="nz-foot">5/5 = today still counts. Bare minimum is never zero.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Today's Schedule</h2><div class="card-sub" id="schedSub"></div></div>
+    <div id="calPre" class="cal-pre" style="display:none;"></div>
+    <div class="cal-grid">
+      <div class="cal-hours" id="calHours"></div>
+      <div class="cal-track" id="calTrack"></div>
+      <div class="cal-now-line" id="calNow" style="display:none;"></div>
+    </div>
+    <div class="sch-foot">Protect <strong>13:30–16:30</strong>. Peak hours. No calls, no errands, no scrolling.</div>
+  </div>
+
+  <div class="card meals">
+    <div class="ritual-head"><div class="ritual-title">Meals Today</div><div class="ritual-time" id="mealCount">0 / 7</div></div>
+    <ul class="ritual-list" id="mealList"></ul>
+    <div class="ritual-note">7 meals = your gaining pace (+0.25–0.5 kg/wk)</div>
+  </div>
+
+  <div class="card reset">
+    <div class="ritual-head"><div class="ritual-title">Reset Block</div><div class="ritual-time">16:45 — 17:30</div></div>
+    <ul class="ritual-list" id="resetList"></ul>
+    <div class="ritual-note">Before US work. Don't let your day blend together.</div>
+  </div>
+
+  <div class="card shutdown">
+    <div class="ritual-head"><div class="ritual-title">Night Shutdown</div><div class="ritual-time">23:30 — 01:30</div></div>
+    <ul class="ritual-list" id="shutdownList"></ul>
+    <div class="ritual-note">Sleep quality is built before sleep.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Quran</h2><div class="card-sub">Faith depth beyond Fajr</div></div>
+    <div class="qr-row">
+      <label>Pages today</label>
+      <input type="number" id="qrToday" min="0" placeholder="0" />
+    </div>
+    <div class="qr-stats">
+      <div class="qr-stat"><div class="qr-stat-label">This week</div><div class="qr-stat-value" id="qrWeek">0</div></div>
+      <div class="qr-stat"><div class="qr-stat-label">This month</div><div class="qr-stat-value" id="qrMonth">0</div></div>
+      <div class="qr-stat"><div class="qr-stat-label">Streak (d)</div><div class="qr-stat-value" id="qrStreak">0</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Self-Analysis</h2><div class="card-sub">Evening reflection · be honest, not flattering</div></div>
+    <div class="journal-prompt" id="journalPrompt">…</div>
+    <textarea id="journalArea" class="journal-area" placeholder="Be specific. The point isn't to feel good — it's to see clearly."></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Plan Tomorrow</h2><div class="card-sub">Fill this tonight — wake up already moving</div></div>
+    <div class="big-domino" style="margin: 0 0 12px; padding: 14px 16px;">
+      <div class="bd-label" style="margin-bottom: 6px;">Tomorrow's One Big Domino</div>
+      <input type="text" id="tomorrowDomino" class="bd-input" style="font-size: 17px;" placeholder="Set it tonight…" />
+    </div>
+    <div class="priorities">
+      <div class="priority-row" data-tidx="0"><span class="priority-num">1</span><input type="text" class="tom-prio" placeholder="Tomorrow priority one" /></div>
+      <div class="priority-row" data-tidx="1"><span class="priority-num">2</span><input type="text" class="tom-prio" placeholder="Tomorrow priority two" /></div>
+      <div class="priority-row" data-tidx="2"><span class="priority-num">3</span><input type="text" class="tom-prio" placeholder="Tomorrow priority three" /></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================================
+// STORAGE
+// ==========================================================
+const KEY = 'os-day-v1';
+const defaultData = {
+  bigDomino: {}, priorities: {}, dailyChecks: {}, nonZero: {},
+  meals: {}, resetBlock: {}, nightShutdown: {}, journal: {}, quran: {},
+  ui: { collapsed: {} }
+};
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return structuredClone(defaultData);
+    return Object.assign(structuredClone(defaultData), JSON.parse(raw));
+  } catch { return structuredClone(defaultData); }
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+let state = load();
+
+// ==========================================================
+// DATE HELPERS
+// ==========================================================
+let viewingDate = new Date();
+function dateKey(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function isoWeekOf(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = (dt.getUTCDay() + 6) % 7;
+  dt.setUTCDate(dt.getUTCDate() - dayNum + 3);
+  const firstThursday = new Date(Date.UTC(dt.getUTCFullYear(), 0, 4));
+  const diff = (dt - firstThursday) / 86400000;
+  const week = 1 + Math.round((diff - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+  return dt.getUTCFullYear() + '-W' + String(week).padStart(2,'0');
+}
+function todayKey() { return dateKey(viewingDate); }
+function tomorrowKey() { const d = new Date(viewingDate); d.setDate(d.getDate()+1); return dateKey(d); }
+function isViewingToday() {
+  const now = new Date();
+  return viewingDate.getFullYear() === now.getFullYear() &&
+         viewingDate.getMonth() === now.getMonth() &&
+         viewingDate.getDate() === now.getDate();
+}
+function isViewingFuture() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const v = new Date(viewingDate); v.setHours(0,0,0,0);
+  return v > now;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ==========================================================
+// SCHEDULE + THEMES
+// ==========================================================
+const themes = {
+  0: { name: 'CEO Meeting · Rest',           color: '#a855f7' },
+  1: { name: 'Client Acquisition',           color: '#ef4444' },
+  2: { name: 'Onboarding · New Clients',     color: '#3b82f6' },
+  3: { name: 'Migration · Off Appointwise',  color: '#f97316' },
+  4: { name: 'Creative Planning · Sync',     color: '#22c55e' },
+  5: { name: 'Review · Numbers · Admin',     color: '#06b6d4' },
+  6: { name: 'Faith · Family · Life Admin',  color: '#eab308' }
+};
+const baseSchedule = [
+  { start: '04:25', end: '04:35', what: 'Fajr', cls: 'prayer' },
+  { start: '10:30', end: '10:45', what: 'Wake + 32oz water' },
+  { start: '10:45', end: '11:00', what: 'Breakfast', cls: 'meal' },
+  { start: '11:00', end: '12:15', what: 'Workout', cls: 'workout', gymDays: [1,2,3,5] },
+  { start: '12:15', end: '12:18', what: 'AM Snack 1', cls: 'meal' },
+  { start: '12:18', end: '12:30', what: 'Dhuhr', cls: 'prayer' },
+  { start: '12:30', end: '13:25', what: 'Lunch + shower', cls: 'meal' },
+  { start: '13:25', end: '13:30', what: 'Zip codes check' },
+  { start: '13:30', end: '14:30', what: 'DEEP WORK 1', cls: 'peak', days: [1,3,5] },
+  { start: '13:30', end: '14:30', what: 'CEO HOURS', cls: 'ceo', days: [2,4] },
+  { start: '14:30', end: '14:40', what: 'AM Snack 2', cls: 'meal' },
+  { start: '14:40', end: '15:38', what: 'DEEP WORK 1 (cont)', cls: 'peak', days: [1,3,5] },
+  { start: '14:40', end: '15:38', what: 'CEO HOURS (cont)', cls: 'ceo', days: [2,4] },
+  { start: '15:38', end: '15:45', what: 'Asr', cls: 'prayer' },
+  { start: '15:45', end: '16:30', what: 'DEEP WORK 2', cls: 'peak' },
+  { start: '16:30', end: '16:40', what: 'PM Snack 1', cls: 'meal' },
+  { start: '16:40', end: '16:45', what: 'DEEP WORK 2 (cont)', cls: 'peak' },
+  { start: '16:45', end: '17:30', what: 'RESET BLOCK', cls: 'reset' },
+  { start: '17:45', end: '18:30', what: 'US Work — Calls' },
+  { start: '18:30', end: '18:55', what: 'AI leads review (EOD)' },
+  { start: '18:55', end: '19:10', what: 'Maghrib', cls: 'prayer' },
+  { start: '19:10', end: '20:00', what: 'Dinner', cls: 'meal' },
+  { start: '20:20', end: '20:30', what: 'Isha', cls: 'prayer' },
+  { start: '20:30', end: '23:30', what: 'Family / personal' },
+  { start: '23:30', end: '01:30', what: 'NIGHT SHUTDOWN', cls: 'shutdown' },
+  { start: '01:30', end: '02:00', what: 'Bed — phone off' },
+  { start: '02:00', end: '02:30', what: 'Sleep' }
+];
+const journalPrompts = [
+  "What did you do well today? What didn't work — and why?",
+  "Where did you act as the new identity? Where did you revert to the old one?",
+  "What's draining you right now? Decode the emotion — what's underneath it?",
+  "What's the one thing you've been avoiding? Why?",
+  "How did today move (or not move) the needle on May's goals?",
+  "What's one experiment you could run tomorrow?",
+  "If today were 20%, did you give 20%? End it on a deliberate win."
+];
+const mealItems = [
+  { key: 'breakfast', label: 'Breakfast',  time: '10:45' },
+  { key: 'amSnack1',  label: 'AM Snack 1', time: '12:15' },
+  { key: 'lunch',     label: 'Lunch',      time: '12:30' },
+  { key: 'amSnack2',  label: 'AM Snack 2', time: '14:30' },
+  { key: 'pmSnack1',  label: 'PM Snack 1', time: '16:30' },
+  { key: 'pmSnack2',  label: 'PM Snack 2', time: '17:30' },
+  { key: 'dinner',    label: 'Dinner',     time: '19:10' }
+];
+const resetItems = [
+  { key: 'shower', label: 'Shower' },
+  { key: 'meal', label: 'Meal' },
+  { key: 'walk', label: 'Quick walk' },
+  { key: 'noPhone', label: 'No phone 20 min' }
+];
+const shutdownItems = [
+  { key: 'inbox', label: 'Inbox cleared' },
+  { key: 'tomorrow', label: 'Tomorrow planned' },
+  { key: 'water', label: 'Final glass of water' },
+  { key: 'skincare', label: 'Skincare' },
+  { key: 'clothes', label: 'Clothes laid out' }
+];
+
+// ==========================================================
+// RENDERS
+// ==========================================================
+function renderDateNav() {
+  const d = viewingDate;
+  const dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  document.getElementById('dnLabel').textContent = dayNames[d.getDay()] + ' · ' + monthNames[d.getMonth()] + ' ' + d.getDate();
+  const badge = document.getElementById('dnBadge');
+  if (isViewingToday()) { badge.textContent = 'TODAY'; badge.className = 'dn-badge today'; }
+  else if (isViewingFuture()) { badge.textContent = 'FUTURE'; badge.className = 'dn-badge future'; }
+  else { badge.textContent = 'PAST'; badge.className = 'dn-badge past'; }
+  document.getElementById('dnPicker').value = dateKey(d);
+  // theme name in schedule sub
+  document.getElementById('schedSub').textContent = themes[d.getDay()].name;
+}
+
+function getStreak(checkKey) {
+  let count = 0;
+  const d = new Date(viewingDate);
+  for (let i = 0; i < 365; i++) {
+    const k = dateKey(d);
+    if (state.dailyChecks[k] && state.dailyChecks[k][checkKey]) {
+      count++; d.setDate(d.getDate() - 1);
+    } else break;
+  }
+  return count;
+}
+
+function renderToday() {
+  const k = todayKey();
+  document.getElementById('bigDomino').value = state.bigDomino[k] || '';
+  const prios = state.priorities[k] || { texts: ['','',''], done: [false,false,false] };
+  document.querySelectorAll('[data-idx]').forEach((row, i) => {
+    row.querySelector('.prio-input').value = prios.texts[i] || '';
+    row.querySelector('.prio-check').checked = !!prios.done[i];
+    row.classList.toggle('done', !!prios.done[i]);
+  });
+  const checks = state.dailyChecks[k] || {};
+  document.querySelectorAll('.check-row[data-key]').forEach(row => {
+    const key = row.dataset.key;
+    const on = !!checks[key];
+    row.querySelector('.daily-check').checked = on;
+    row.classList.toggle('on', on);
+    let streakEl = row.querySelector('.streak');
+    if (!streakEl) {
+      streakEl = document.createElement('span');
+      streakEl.className = 'streak';
+      row.appendChild(streakEl);
+    }
+    const streak = getStreak(key);
+    streakEl.textContent = streak ? streak + 'd' : '';
+    streakEl.className = 'streak' + (streak === 0 ? ' zero' : streak >= 30 ? ' long' : '');
+  });
+  // Journal prompt
+  const dayOfYear = Math.floor((viewingDate - new Date(viewingDate.getFullYear(), 0, 0)) / 86400000);
+  document.getElementById('journalPrompt').textContent = journalPrompts[dayOfYear % journalPrompts.length];
+}
+
+function renderNonZero() {
+  const k = todayKey();
+  const data = state.nonZero[k] || {};
+  let count = 0;
+  document.querySelectorAll('[data-nz]').forEach(row => {
+    const key = row.dataset.nz;
+    const on = !!data[key];
+    if (on) count++;
+    row.querySelector('input').checked = on;
+    row.classList.toggle('on', on);
+  });
+  document.getElementById('nzCount').textContent = count;
+}
+
+function renderRitual(listEl, items, stateKey, useTime) {
+  const k = todayKey();
+  const data = state[stateKey][k] || {};
+  listEl.innerHTML = '';
+  let done = 0;
+  items.forEach(item => {
+    if (data[item.key]) done++;
+    const li = document.createElement('li');
+    li.className = 'ritual-item' + (data[item.key] ? ' on' : '');
+    const timeHtml = useTime ? `<span class="mi-time">${item.time}</span>` : '';
+    li.innerHTML = `<input type="checkbox" class="check" ${data[item.key]?'checked':''} />${timeHtml}<span class="ri-text">${item.label}</span>`;
+    li.querySelector('input').addEventListener('change', e => {
+      if (!state[stateKey][k]) state[stateKey][k] = {};
+      state[stateKey][k][item.key] = e.target.checked;
+      li.classList.toggle('on', e.target.checked);
+      save();
+      if (stateKey === 'meals') renderMeals();
+    });
+    listEl.appendChild(li);
+  });
+  return done;
+}
+function renderMeals() {
+  const done = renderRitual(document.getElementById('mealList'), mealItems, 'meals', true);
+  document.getElementById('mealCount').textContent = done + ' / ' + mealItems.length;
+}
+function renderResetBlock()    { renderRitual(document.getElementById('resetList'), resetItems, 'resetBlock'); }
+function renderNightShutdown() { renderRitual(document.getElementById('shutdownList'), shutdownItems, 'nightShutdown'); }
+
+// Schedule (calendar)
+const CAL_START_H = 10;
+const CAL_END_H = 26.5;
+const PX_PER_HOUR = 50;
+function timeToMins(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function timeYAbs(t) { let m = timeToMins(t); if (m < (CAL_START_H - 1) * 60) m += 1440; return (m - CAL_START_H * 60) * (PX_PER_HOUR / 60); }
+function renderSchedule() {
+  const day = viewingDate.getDay();
+  let items = baseSchedule.filter(s => {
+    if (s.gymDays && !s.gymDays.includes(day)) return false;
+    if (s.days && !s.days.includes(day)) return false;
+    return true;
+  });
+  if (day === 0) items = items.concat([{ start: '21:00', end: '22:30', what: 'CEO Meeting · Weekly Review', cls: 'peak' }]);
+  if (day === 6) items = items.concat([
+    { start: '14:00', end: '17:00', what: 'Life Admin Day', cls: 'reset' },
+    { start: '19:30', end: '23:00', what: 'Deliberate Fun', cls: 'ceo' }
+  ]);
+  const preEvents = items.filter(e => { const m = timeToMins(e.start); return m >= 180 && m < CAL_START_H * 60; });
+  let mainEvents = items.filter(e => !preEvents.includes(e));
+  mainEvents.sort((a, b) => {
+    let aM = timeToMins(a.start); let bM = timeToMins(b.start);
+    if (aM < (CAL_START_H - 1) * 60) aM += 1440;
+    if (bM < (CAL_START_H - 1) * 60) bM += 1440;
+    return aM - bM;
+  });
+  // Pre-events render
+  const preWrap = document.getElementById('calPre');
+  preWrap.innerHTML = '';
+  if (preEvents.length) {
+    preEvents.forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'cal-pre-row';
+      row.innerHTML = `<span class="cal-pre-time">${e.start}</span><span class="cal-pre-what">${e.what}</span><span class="cal-pre-note">↓ back to sleep until 10:30</span>`;
+      preWrap.appendChild(row);
+    });
+    preWrap.style.display = '';
+  } else preWrap.style.display = 'none';
+
+  // Hours
+  const hoursWrap = document.getElementById('calHours');
+  hoursWrap.innerHTML = '';
+  const totalHours = Math.ceil(CAL_END_H - CAL_START_H);
+  for (let i = 0; i <= totalHours; i++) {
+    const h = (CAL_START_H + i) % 24;
+    const div = document.createElement('div');
+    div.className = 'cal-hour';
+    div.style.top = (i * PX_PER_HOUR) + 'px';
+    div.textContent = String(Math.floor(h)).padStart(2, '0');
+    hoursWrap.appendChild(div);
+  }
+
+  // Events
+  const track = document.getElementById('calTrack');
+  track.innerHTML = '';
+  const now = new Date();
+  let curNorm = now.getHours() * 60 + now.getMinutes();
+  if (curNorm < (CAL_START_H - 1) * 60) curNorm += 1440;
+  const showNow = isViewingToday();
+
+  mainEvents.forEach((e, idx) => {
+    const startY = timeYAbs(e.start);
+    const endY = timeYAbs(e.end);
+    let height = Math.max(14, endY - startY);
+    if (idx + 1 < mainEvents.length) {
+      const ns = timeYAbs(mainEvents[idx + 1].start);
+      if (startY + height > ns) height = Math.max(6, ns - startY);
+    }
+    let sM = timeToMins(e.start); let eM = timeToMins(e.end);
+    if (sM < (CAL_START_H - 1) * 60) sM += 1440;
+    if (eM <= sM) eM += 1440;
+    const isNow = showNow && sM <= curNorm && eM > curNorm;
+    const div = document.createElement('div');
+    div.className = 'cal-event' + (e.cls ? ' ' + e.cls : '') + (isNow ? ' now' : '');
+    div.style.top = startY + 'px';
+    div.style.height = height + 'px';
+    div.innerHTML = `<span class="cal-event-time">${e.start} – ${e.end}</span><span class="cal-event-what">${e.what}</span>`;
+    track.appendChild(div);
+  });
+  // Now line
+  const nowLine = document.getElementById('calNow');
+  if (showNow && curNorm >= CAL_START_H * 60 && curNorm <= CAL_END_H * 60) {
+    nowLine.style.top = ((curNorm - CAL_START_H * 60) * (PX_PER_HOUR / 60)) + 'px';
+    nowLine.style.display = '';
+  } else nowLine.style.display = 'none';
+}
+
+function renderQuran() {
+  const k = todayKey();
+  const today = state.quran[k] || 0;
+  document.getElementById('qrToday').value = today || '';
+  const wk = isoWeekOf(viewingDate);
+  let weekTotal = 0, monthTotal = 0;
+  const m = viewingDate.getFullYear() + '-' + String(viewingDate.getMonth()+1).padStart(2,'0');
+  Object.entries(state.quran).forEach(([dk, pages]) => {
+    try {
+      if (isoWeekOf(new Date(dk + 'T12:00:00')) === wk) weekTotal += pages || 0;
+      if (dk.startsWith(m + '-')) monthTotal += pages || 0;
+    } catch (e) {}
+  });
+  document.getElementById('qrWeek').textContent = weekTotal;
+  document.getElementById('qrMonth').textContent = monthTotal;
+  let streak = 0;
+  const d = new Date(viewingDate);
+  for (let i = 0; i < 365; i++) {
+    const dk = dateKey(d);
+    if ((state.quran[dk] || 0) > 0) { streak++; d.setDate(d.getDate() - 1); } else break;
+  }
+  document.getElementById('qrStreak').textContent = streak;
+}
+
+function renderJournal() {
+  document.getElementById('journalArea').value = state.journal[todayKey()] || '';
+}
+
+function renderTomorrow() {
+  const k = tomorrowKey();
+  document.getElementById('tomorrowDomino').value = state.bigDomino[k] || '';
+  const prios = state.priorities[k] || { texts: ['','',''], done: [false,false,false] };
+  document.querySelectorAll('.tom-prio').forEach((inp, i) => { inp.value = prios.texts[i] || ''; });
+}
+
+function renderAll() {
+  renderDateNav();
+  renderToday();
+  renderNonZero();
+  renderMeals();
+  renderResetBlock();
+  renderNightShutdown();
+  renderSchedule();
+  renderQuran();
+  renderJournal();
+  renderTomorrow();
+}
+
+// ==========================================================
+// EVENT HANDLERS
+// ==========================================================
+function setViewingDate(d) { viewingDate = new Date(d); renderAll(); }
+document.getElementById('dnPrev').addEventListener('click', () => { const d = new Date(viewingDate); d.setDate(d.getDate() - 1); setViewingDate(d); });
+document.getElementById('dnNext').addEventListener('click', () => { const d = new Date(viewingDate); d.setDate(d.getDate() + 1); setViewingDate(d); });
+document.getElementById('dnToday').addEventListener('click', () => setViewingDate(new Date()));
+document.getElementById('dnPicker').addEventListener('change', e => { if (e.target.value) setViewingDate(new Date(e.target.value + 'T12:00:00')); });
+document.addEventListener('keydown', e => {
+  const tag = (document.activeElement?.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  if (e.key === 'ArrowLeft') document.getElementById('dnPrev').click();
+  if (e.key === 'ArrowRight') document.getElementById('dnNext').click();
+  if (e.key === 't' || e.key === 'T') document.getElementById('dnToday').click();
+});
+
+document.getElementById('bigDomino').addEventListener('input', e => { state.bigDomino[todayKey()] = e.target.value; save(); });
+document.querySelectorAll('[data-idx]').forEach(row => {
+  const idx = +row.dataset.idx;
+  row.querySelector('.prio-input').addEventListener('input', e => {
+    const k = todayKey();
+    if (!state.priorities[k]) state.priorities[k] = { texts: ['','',''], done: [false,false,false] };
+    state.priorities[k].texts[idx] = e.target.value; save();
+  });
+  row.querySelector('.prio-check').addEventListener('change', e => {
+    const k = todayKey();
+    if (!state.priorities[k]) state.priorities[k] = { texts: ['','',''], done: [false,false,false] };
+    state.priorities[k].done[idx] = e.target.checked;
+    row.classList.toggle('done', e.target.checked);
+    save();
+  });
+});
+document.querySelectorAll('.check-row[data-key]').forEach(row => {
+  row.querySelector('.daily-check').addEventListener('change', e => {
+    const k = todayKey();
+    if (!state.dailyChecks[k]) state.dailyChecks[k] = {};
+    state.dailyChecks[k][row.dataset.key] = e.target.checked;
+    row.classList.toggle('on', e.target.checked);
+    save(); renderToday(); // recompute streaks
+  });
+});
+document.querySelectorAll('[data-nz]').forEach(row => {
+  row.querySelector('input').addEventListener('change', e => {
+    const k = todayKey();
+    if (!state.nonZero[k]) state.nonZero[k] = {};
+    state.nonZero[k][row.dataset.nz] = e.target.checked;
+    row.classList.toggle('on', e.target.checked);
+    save(); renderNonZero();
+  });
+});
+document.getElementById('qrToday').addEventListener('input', e => {
+  const k = todayKey();
+  const v = Number(e.target.value);
+  if (v && v > 0) state.quran[k] = v;
+  else delete state.quran[k];
+  save(); renderQuran();
+});
+document.getElementById('journalArea').addEventListener('input', e => { state.journal[todayKey()] = e.target.value; save(); });
+document.getElementById('tomorrowDomino').addEventListener('input', e => { state.bigDomino[tomorrowKey()] = e.target.value; save(); });
+document.querySelectorAll('[data-tidx]').forEach(row => {
+  const idx = +row.dataset.tidx;
+  row.querySelector('.tom-prio').addEventListener('input', e => {
+    const k = tomorrowKey();
+    if (!state.priorities[k]) state.priorities[k] = { texts: ['','',''], done: [false,false,false] };
+    state.priorities[k].texts[idx] = e.target.value; save();
+  });
+});
+
+// Collapsibles
+function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section'; }
+document.querySelectorAll('.card').forEach(card => {
+  const h2 = card.querySelector('.card-head h2');
+  if (!h2) return;
+  if (!card.dataset.collapseId) card.dataset.collapseId = slugify(h2.textContent);
+  const id = card.dataset.collapseId;
+  if (state.ui?.collapsed?.[id]) card.classList.add('collapsed');
+  h2.addEventListener('click', () => {
+    card.classList.toggle('collapsed');
+    if (!state.ui) state.ui = { collapsed: {} };
+    state.ui.collapsed[id] = card.classList.contains('collapsed');
+    save();
+  });
+});
+
+// ==========================================================
+// INIT
+// ==========================================================
+renderAll();
+setInterval(() => { renderSchedule(); if (new Date().getHours() === 0 && new Date().getMinutes() === 0) renderAll(); }, 60000);
+
+// Cloud sync via Row's sync.js — re-render when remote updates land
+if (window.initCloudSync) {
+  initCloudSync({
+    appKey: 'os-day',
+    syncedKeys: [KEY],
+    onApplied: () => { state = load(); renderAll(); }
+  });
+} else {
+  // sync.js not loaded yet — wait
+  window.addEventListener('load', () => {
+    if (window.initCloudSync) initCloudSync({
+      appKey: 'os-day',
+      syncedKeys: [KEY],
+      onApplied: () => { state = load(); renderAll(); }
+    });
+  });
+}
+</script>
+</body>
+</html>

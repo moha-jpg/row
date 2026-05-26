@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<title>Brain · Mohamed's OS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #050506;
+  --card: #0d0d10;
+  --card-2: #14141a;
+  --card-3: #1a1a22;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-2: rgba(255, 255, 255, 0.10);
+  --text: #FAFAFA;
+  --text-2: #B8B6B0;
+  --text-3: #76746E;
+  --dim-2: #3a3a3a;
+  --gold: #d4af37;
+  --gold-bright: #e6c068;
+  --gold-soft: rgba(212, 175, 55, 0.10);
+  --gold-border: rgba(212, 175, 55, 0.25);
+  --success: #6BE3A4;
+  --warning: #F2C063;
+  --danger: #FF6B6B;
+  --blue: #7DD3FC;
+  --purple: #b794f4;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text-2); font-family: var(--font); -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100vh; position: relative; overflow-x: hidden;
+  padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(125, 211, 252, 0.06), transparent 45%),
+    radial-gradient(circle at 18% 90%, rgba(183, 148, 244, 0.04), transparent 50%);
+  filter: blur(40px); pointer-events: none; z-index: -2;
+}
+.page { max-width: 900px; margin: 0 auto; }
+.dash-title { margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.025em; background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.dash-sub { font-size: 12px; color: var(--text-3); margin-bottom: 18px; letter-spacing: 0.04em; }
+.dash-sub a { color: var(--gold-bright); text-decoration: none; margin-right: 12px; }
+.dash-sub a:hover { text-decoration: underline; }
+@media (max-width: 480px) { .dash-title { font-size: 22px; } }
+
+.card {
+  background: linear-gradient(180deg, var(--card) 0%, rgba(13,13,16,0.7) 100%);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; margin-bottom: 16px;
+}
+.card-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
+.card-head h2 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); cursor: pointer; user-select: none; position: relative; padding-right: 18px; }
+.card-head h2:hover { color: var(--gold); }
+.card-head h2::after { content: ''; position: absolute; right: 0; top: 50%; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-65%) rotate(45deg); transition: transform 0.2s; opacity: 0.5; }
+.card.collapsed > *:not(.card-head) { display: none !important; }
+.card.collapsed .card-head h2::after { transform: translateY(-30%) rotate(-45deg); }
+.card-sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; }
+
+/* CAPTURE */
+.tag-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.tag-select { background: var(--card-2); border: 1px solid var(--border); color: var(--text); padding: 7px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; cursor: pointer; outline: none; }
+.tag-select:focus { border-color: var(--gold); }
+.search-input { flex: 1; min-width: 120px; background: var(--card-2); border: 1px solid var(--border); color: var(--text); padding: 7px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; outline: none; }
+.search-input:focus { border-color: var(--gold); }
+.search-input::placeholder { color: var(--text-3); }
+.capture-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: stretch; }
+.capture-row textarea, .capture-row input[type=text] { flex: 1; background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 10px 12px; font-size: 14px; font-family: inherit; outline: none; resize: none; }
+.capture-row textarea:focus, .capture-row input[type=text]:focus { border-color: var(--gold); }
+.btn { background: var(--card-2); border: 1px solid var(--border-2); color: var(--text-2); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; }
+.btn:hover { background: var(--gold-soft); border-color: var(--gold); color: var(--gold-bright); }
+.btn-icon { background: transparent; border: none; color: var(--text-3); cursor: pointer; padding: 4px 8px; font-size: 16px; }
+.btn-icon:hover { color: var(--danger); }
+.list-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 5px; }
+.list-item.done { opacity: 0.35; }
+.list-item.done .list-text { text-decoration: line-through; }
+.list-text { flex: 1; font-size: 13px; line-height: 1.5; }
+.list-ts { font-size: 10px; color: var(--text-3); margin-top: 4px; }
+.tag-pill { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-right: 6px; vertical-align: middle; }
+.tag-pill.sms { background: rgba(125,211,252,0.14); color: var(--blue); }
+.tag-pill.pricing { background: rgba(107,227,164,0.14); color: var(--success); }
+.tag-pill.ai { background: rgba(183,148,244,0.14); color: var(--purple); }
+.tag-pill.growth { background: var(--gold-soft); color: var(--gold); }
+.tag-pill.competitor { background: rgba(255,107,107,0.14); color: var(--danger); }
+.tag-pill.lesson { background: rgba(242,192,99,0.14); color: var(--warning); }
+.tag-pill.personal { background: rgba(212,165,116,0.14); color: #d4a574; }
+.tag-pill.untagged { background: var(--card-3); color: var(--text-3); }
+.empty-state { color: var(--text-3); padding: 18px; text-align: center; font-style: italic; font-size: 12px; }
+
+/* CRM */
+.crm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+thead th { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border-2); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); }
+td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+td input, td select { width: 100%; background: transparent; border: none; color: var(--text); font-size: 13px; outline: none; font-family: inherit; }
+td select { text-transform: capitalize; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2376746E' d='M5 7L1 3h8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; padding-right: 16px; font-weight: 600; }
+td select option { background: var(--card); }
+td select[data-status="lead"] { color: var(--warning); }
+td select[data-status="talking"] { color: var(--blue); }
+td select[data-status="signed"] { color: #22d3ee; }
+td select[data-status="onboarding"] { color: #fb923c; }
+td select[data-status="live"] { color: var(--success); }
+td select[data-status="paused"] { color: var(--text-3); }
+td select[data-status="churned"] { color: var(--danger); }
+
+.backup-bar { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 22px; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); font-size: 11px; flex-wrap: wrap; }
+.backup-btn { background: var(--card-2); border: 1px solid var(--border); color: var(--text-3); padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-family: inherit; font-weight: 600; }
+.backup-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-soft); }
+.backup-info { margin-left: auto; color: var(--text-3); font-size: 10px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 class="dash-title">Brain</h1>
+  <div class="dash-sub">
+    <a href="day.html">← Day</a>
+    <a href="strategy.html">← Strategy</a>
+    <a href="index.html">Main →</a>
+    <span style="color: var(--text-3);">· capture · close loops · CRM</span>
+  </div>
+
+  <!-- QUICK CAPTURE / SECOND BRAIN -->
+  <div class="card">
+    <div class="card-head"><h2>Quick Capture · Second Brain</h2><div class="card-sub">Tag · search · find later</div></div>
+    <div class="tag-bar">
+      <select id="captureTag" class="tag-select" title="Tag for new entry">
+        <option value="untagged">Untagged</option>
+        <option value="sms">SMS angle</option>
+        <option value="pricing">Pricing</option>
+        <option value="ai">AI tools</option>
+        <option value="growth">Growth</option>
+        <option value="competitor">Competitor</option>
+        <option value="lesson">Business lesson</option>
+        <option value="personal">Personal</option>
+      </select>
+    </div>
+    <div class="capture-row">
+      <textarea id="captureInput" rows="2" placeholder="Drop any thought, idea, todo…"></textarea>
+      <button class="btn" id="captureAdd">Add</button>
+    </div>
+    <div class="tag-bar">
+      <input type="text" id="captureSearch" class="search-input" placeholder="Search entries…" />
+      <select id="captureFilter" class="tag-select">
+        <option value="all">All tags</option>
+        <option value="sms">SMS angle</option>
+        <option value="pricing">Pricing</option>
+        <option value="ai">AI tools</option>
+        <option value="growth">Growth</option>
+        <option value="competitor">Competitor</option>
+        <option value="lesson">Business lesson</option>
+        <option value="personal">Personal</option>
+        <option value="untagged">Untagged</option>
+      </select>
+    </div>
+    <div id="captureList" style="margin-top: 8px;"></div>
+  </div>
+
+  <!-- OPEN LOOPS -->
+  <div class="card">
+    <div class="card-head"><h2>Open Loops</h2><div class="card-sub">When tired, close one — don't rest</div></div>
+    <div class="capture-row">
+      <input type="text" id="loopInput" placeholder="What have you been putting off…" />
+      <button class="btn" id="loopAdd">Add</button>
+    </div>
+    <div id="loopsList"></div>
+  </div>
+
+  <!-- CRM -->
+  <div class="card">
+    <div class="crm-head">
+      <div><h2 style="margin:0;">Tree Service Clients · CRM</h2><div class="card-sub" style="margin-top:4px;">lead → talking → signed → onboarding → live</div></div>
+      <button class="btn" id="addClient">+ Add Client</button>
+    </div>
+    <table>
+      <thead><tr><th>Company</th><th style="width:110px;">Status</th><th style="width:80px;">$/mo</th><th>Notes</th><th style="width:24px;"></th></tr></thead>
+      <tbody id="clientsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="backup-bar">
+    <button class="backup-btn" id="backupExport">↓ Export Backup</button>
+    <button class="backup-btn" id="backupImport">↑ Import Backup</button>
+    <input type="file" id="backupFile" accept="application/json" style="display:none;" />
+    <span class="backup-info">Brain data — JSON</span>
+  </div>
+</div>
+
+<script>
+const KEY = 'os-brain-v1';
+const defaultData = { capture: [], loops: [], clients: [], ui: { collapsed: {} } };
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return structuredClone(defaultData);
+    return Object.assign(structuredClone(defaultData), JSON.parse(raw));
+  } catch { return structuredClone(defaultData); }
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+let state = load();
+
+function dateKey(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function todayKey() { return dateKey(); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// CAPTURE
+function renderCapture() {
+  const wrap = document.getElementById('captureList');
+  wrap.innerHTML = '';
+  const filter = document.getElementById('captureFilter').value;
+  const search = (document.getElementById('captureSearch').value || '').toLowerCase().trim();
+  let items = state.capture.slice().reverse();
+  if (filter !== 'all') items = items.filter(i => (i.tag || 'untagged') === filter);
+  if (search) items = items.filter(i => (i.text || '').toLowerCase().includes(search));
+  if (!items.length) { wrap.innerHTML = `<div class="empty-state">No entries${search ? ' match search' : filter !== 'all' ? ' for this tag' : ''}.</div>`; return; }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'list-item' + (item.done ? ' done' : '');
+    const tag = item.tag || 'untagged';
+    div.innerHTML = `<input type="checkbox" class="check" ${item.done?'checked':''} /><div style="flex:1;"><div class="list-text"><span class="tag-pill ${tag}">${tag}</span>${escapeHtml(item.text)}</div><div class="list-ts">${new Date(item.ts).toLocaleString()}</div></div><button class="btn-icon" title="Delete">×</button>`;
+    div.querySelector('input').addEventListener('change', e => { item.done = e.target.checked; save(); renderCapture(); });
+    div.querySelector('.btn-icon').addEventListener('click', () => { state.capture = state.capture.filter(x => x.id !== item.id); save(); renderCapture(); });
+    wrap.appendChild(div);
+  });
+}
+document.getElementById('captureAdd').addEventListener('click', () => {
+  const txt = document.getElementById('captureInput').value.trim();
+  if (!txt) return;
+  const tag = document.getElementById('captureTag').value;
+  state.capture.push({ id: Date.now()+'', text: txt, ts: Date.now(), done: false, tag });
+  document.getElementById('captureInput').value = '';
+  save(); renderCapture();
+});
+document.getElementById('captureInput').addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') document.getElementById('captureAdd').click();
+});
+document.getElementById('captureFilter').addEventListener('change', renderCapture);
+document.getElementById('captureSearch').addEventListener('input', renderCapture);
+
+// LOOPS
+function renderLoops() {
+  const wrap = document.getElementById('loopsList');
+  wrap.innerHTML = '';
+  if (!state.loops.length) { wrap.innerHTML = `<div class="empty-state">No open loops. Energy lives in closing them.</div>`; return; }
+  state.loops.slice().reverse().forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'list-item' + (item.done ? ' done' : '');
+    div.innerHTML = `<input type="checkbox" class="check" ${item.done?'checked':''} /><div style="flex:1;"><div class="list-text">${escapeHtml(item.text)}</div><div class="list-ts">${new Date(item.ts).toLocaleDateString()}</div></div><button class="btn-icon" title="Delete">×</button>`;
+    div.querySelector('input').addEventListener('change', e => { item.done = e.target.checked; save(); renderLoops(); });
+    div.querySelector('.btn-icon').addEventListener('click', () => { state.loops = state.loops.filter(x => x.id !== item.id); save(); renderLoops(); });
+    wrap.appendChild(div);
+  });
+}
+document.getElementById('loopAdd').addEventListener('click', () => {
+  const txt = document.getElementById('loopInput').value.trim();
+  if (!txt) return;
+  state.loops.push({ id: Date.now()+'', text: txt, ts: Date.now(), done: false });
+  document.getElementById('loopInput').value = '';
+  save(); renderLoops();
+});
+document.getElementById('loopInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loopAdd').click(); });
+
+// CRM
+const STATUSES = ['lead', 'talking', 'signed', 'onboarding', 'live', 'paused', 'churned'];
+function renderClients() {
+  const tbody = document.getElementById('clientsBody');
+  tbody.innerHTML = '';
+  if (!state.clients.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No clients yet. Hit "+ Add Client" to start tracking.</td></tr>`; return; }
+  state.clients.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><input data-f="company" value="${escapeHtml(c.company||'')}" placeholder="Company name" /></td><td><select data-f="status" data-status="${c.status||'lead'}">${STATUSES.map(s => `<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td><input data-f="mrr" type="number" value="${c.mrr ?? ''}" placeholder="0" /></td><td><input data-f="notes" value="${escapeHtml(c.notes||'')}" placeholder="…" /></td><td><button class="btn-icon" title="Delete">×</button></td>`;
+    tr.querySelectorAll('[data-f]').forEach(el => {
+      el.addEventListener('input', () => { c[el.dataset.f] = el.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value; save(); });
+      el.addEventListener('change', () => { c[el.dataset.f] = el.value; if (el.dataset.f === 'status') el.dataset.status = el.value; save(); });
+    });
+    tr.querySelector('.btn-icon').addEventListener('click', () => {
+      if (confirm('Delete ' + (c.company || 'this client') + '?')) { state.clients = state.clients.filter(x => x.id !== c.id); save(); renderClients(); }
+    });
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('addClient').addEventListener('click', () => {
+  state.clients.push({ id: Date.now()+'-'+Math.random().toString(36).slice(2,7), company: '', status: 'lead', mrr: null, notes: '' });
+  save(); renderClients();
+});
+
+// BACKUP
+document.getElementById('backupExport').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `os-brain-backup-${todayKey()}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+document.getElementById('backupImport').addEventListener('click', () => document.getElementById('backupFile').click());
+document.getElementById('backupFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!confirm('Replace ALL brain data with imported backup?')) return;
+      localStorage.setItem(KEY, JSON.stringify(imported));
+      location.reload();
+    } catch (err) { alert('Invalid: ' + err.message); }
+  };
+  reader.readAsText(file);
+});
+
+// COLLAPSIBLES
+function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section'; }
+document.querySelectorAll('.card').forEach(card => {
+  const h2 = card.querySelector('.card-head h2');
+  if (!h2) return;
+  if (!card.dataset.collapseId) card.dataset.collapseId = slugify(h2.textContent);
+  const id = card.dataset.collapseId;
+  if (state.ui?.collapsed?.[id]) card.classList.add('collapsed');
+  h2.addEventListener('click', () => {
+    card.classList.toggle('collapsed');
+    if (!state.ui) state.ui = { collapsed: {} };
+    state.ui.collapsed[id] = card.classList.contains('collapsed');
+    save();
+  });
+});
+
+// RENDER ALL + INIT
+function renderAll() { renderCapture(); renderLoops(); renderClients(); }
+renderAll();
+
+function startSync() {
+  if (!window.initCloudSync) return;
+  initCloudSync({ appKey: 'os-brain', syncedKeys: [KEY], onApplied: () => { state = load(); renderAll(); } });
+}
+if (window.initCloudSync) startSync(); else window.addEventListener('load', startSync);
+</script>
+</body>
+</html>

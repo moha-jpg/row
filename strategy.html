@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<title>Strategy · Mohamed's OS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #050506;
+  --card: #0d0d10;
+  --card-2: #14141a;
+  --card-3: #1a1a22;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-2: rgba(255, 255, 255, 0.10);
+  --text: #FAFAFA;
+  --text-2: #B8B6B0;
+  --text-3: #76746E;
+  --dim: #5a5a5a;
+  --dim-2: #3a3a3a;
+  --gold: #d4af37;
+  --gold-bright: #e6c068;
+  --gold-deep: #b8941f;
+  --gold-soft: rgba(212, 175, 55, 0.10);
+  --gold-border: rgba(212, 175, 55, 0.25);
+  --success: #6BE3A4;
+  --warning: #F2C063;
+  --danger: #FF6B6B;
+  --blue: #7DD3FC;
+  --purple: #b794f4;
+  --pink: #ec4899;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text-2); font-family: var(--font); -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100vh; position: relative; overflow-x: hidden;
+  padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(212, 175, 55, 0.08), transparent 45%),
+    radial-gradient(circle at 18% 90%, rgba(236, 72, 153, 0.04), transparent 50%);
+  filter: blur(40px); pointer-events: none; z-index: -2;
+}
+.page { max-width: 1100px; margin: 0 auto; }
+.dash-title {
+  margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.025em;
+  background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+}
+.dash-sub { font-size: 12px; color: var(--text-3); margin-bottom: 18px; letter-spacing: 0.04em; }
+.dash-sub a { color: var(--gold-bright); text-decoration: none; margin-right: 12px; }
+.dash-sub a:hover { text-decoration: underline; }
+@media (max-width: 480px) { .dash-title { font-size: 22px; } }
+
+.card {
+  background: linear-gradient(180deg, var(--card) 0%, rgba(13,13,16,0.7) 100%);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; margin-bottom: 16px;
+}
+.card-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
+.card-head h2 {
+  margin: 0; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3);
+  cursor: pointer; user-select: none; position: relative; padding-right: 18px;
+}
+.card-head h2:hover { color: var(--gold); }
+.card-head h2::after {
+  content: ''; position: absolute; right: 0; top: 50%;
+  width: 6px; height: 6px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: translateY(-65%) rotate(45deg); transition: transform 0.2s; opacity: 0.5;
+}
+.card.collapsed > *:not(.card-head) { display: none !important; }
+.card.collapsed .card-head { margin-bottom: 0; }
+.card.collapsed .card-head h2::after { transform: translateY(-30%) rotate(-45deg); }
+.card-sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; }
+
+/* WAR ROOM */
+.war-room { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+.war-room .card-head { margin-bottom: 14px; }
+.war-room.collapsed > *:not(.card-head) { display: none !important; }
+.war-room.collapsed .card-head { margin-bottom: 0; }
+.wr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.wr-panel { background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; display: flex; flex-direction: column; min-height: 140px; }
+.wr-panel.priorities { border-left: 3px solid var(--success); }
+.wr-panel.fires { border-left: 3px solid var(--danger); }
+.wr-panel.opportunities { border-left: 3px solid var(--blue); }
+.wr-panel.bottleneck { border-left: 3px solid var(--gold); background: linear-gradient(135deg, rgba(212,175,55,0.08), var(--card-2)); }
+.wr-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; }
+.wr-panel.priorities .wr-label { color: var(--success); }
+.wr-panel.fires .wr-label { color: var(--danger); }
+.wr-panel.opportunities .wr-label { color: var(--blue); }
+.wr-panel.bottleneck .wr-label { color: var(--gold); }
+.wr-label-count { margin-left: 6px; color: var(--text-3); font-weight: 600; font-size: 9px; }
+.wr-list { list-style: none; margin: 0 0 6px 0; padding: 0; flex: 1; }
+.wr-li { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); padding: 4px 0; border-bottom: 1px dashed var(--border); }
+.wr-li:last-child { border-bottom: none; }
+.wr-li-text { flex: 1; line-height: 1.4; }
+.wr-li button { background: transparent; border: none; color: var(--text-3); cursor: pointer; padding: 0 4px; font-size: 13px; }
+.wr-li button:hover { color: var(--danger); }
+.wr-add { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 6px 10px; font-size: 12px; font-family: inherit; outline: none; }
+.wr-add:focus { border-color: var(--gold); }
+.wr-add::placeholder { color: var(--text-3); }
+.wr-add:disabled { background: var(--card-2); color: var(--text-3); border-style: dashed; cursor: not-allowed; }
+.wr-bottleneck { width: 100%; background: transparent; border: none; color: var(--gold-bright); padding: 4px 0; font-size: 14px; font-weight: 600; font-family: inherit; outline: none; resize: none; flex: 1; min-height: 60px; }
+.wr-bottleneck::placeholder { color: var(--text-3); font-weight: 400; }
+@media (max-width: 700px) { .wr-grid { grid-template-columns: 1fr; } }
+
+/* LEVELS */
+.lv-current { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+.lv-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.22em; color: var(--gold); background: var(--gold-soft); border: 1px solid var(--gold-border); padding: 4px 9px; border-radius: 4px; }
+.lv-name { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.lv-bar { display: flex; gap: 5px; margin: 12px 0 18px; }
+.lv-segment { flex: 1; height: 7px; background: var(--card-2); border-radius: 3px; }
+.lv-segment.done { background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright)); box-shadow: 0 0 10px rgba(212,175,55,0.4); }
+.lv-segment.current { background: var(--gold-soft); border: 1px solid var(--gold); }
+.lv-criteria-title, .lv-next-title { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+.lv-next-title { margin-top: 16px; }
+.lv-next-title strong { color: var(--gold); }
+.lv-criteria-list, .lv-next-list { list-style: none; padding: 0; margin: 0; }
+.lv-criteria-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--card-2); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 4px; font-size: 13px; color: var(--text-2); }
+.lv-criteria-list li.done { color: var(--success); background: rgba(107,227,164,0.06); border-color: rgba(107,227,164,0.3); }
+.lv-criteria-list li.done .lvc-text { text-decoration: line-through; opacity: 0.7; }
+.lv-next-list li { color: var(--text-3); opacity: 0.6; padding: 4px 12px; font-size: 12px; }
+.lv-next-list li::before { content: '○ '; margin-right: 4px; }
+.lv-advance { margin-top: 12px; padding: 12px; background: var(--gold-soft); border: 1px solid var(--gold); border-radius: var(--radius-sm); font-size: 13px; color: var(--gold-bright); display: none; text-align: center; }
+.lv-advance.show { display: block; }
+.lv-advance button { background: var(--gold); border: none; color: var(--bg); padding: 7px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; font-family: inherit; margin-top: 6px; }
+
+/* WEEKLY SCORE */
+.ws-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.ws-cell { background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.ws-cell:focus-within { border-color: var(--gold); }
+.ws-cell label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--text-3); display: block; margin-bottom: 8px; font-weight: 600; }
+.ws-input { display: flex; justify-content: center; align-items: baseline; gap: 4px; }
+.ws-input input { width: 48px; background: transparent; border: none; color: var(--text); text-align: center; font-size: 24px; font-weight: 700; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+.ws-input span { font-size: 11px; color: var(--text-3); }
+.ws-total { margin-top: 14px; padding: 10px 12px; background: var(--card-2); border: 1px solid var(--gold-border); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; }
+.ws-total-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold); font-weight: 600; }
+.ws-total-value { font-size: 18px; font-weight: 700; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.ws-question { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.ws-question label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold); margin-bottom: 8px; font-weight: 600; }
+.ws-question textarea { width: 100%; min-height: 60px; background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; outline: none; }
+.ws-question textarea:focus { border-color: var(--gold); }
+@media (max-width: 600px) { .ws-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* METRICS / KPIs */
+.metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.metric { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.metric:focus-within { border-color: var(--gold); }
+.metric label { color: var(--text-3); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+.metric input { width: 100px; background: transparent; border: none; color: var(--text); text-align: right; font-size: 16px; font-weight: 600; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+.week-label { font-size: 10px; color: var(--text-3); text-align: right; margin-top: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+.progress-row { display: grid; grid-template-columns: 110px 1fr 130px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.progress-row:last-child { border-bottom: none; }
+.progress-label { color: var(--text-3); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+.progress-bar { height: 6px; background: var(--card-2); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright)); border-radius: 3px; transition: width 0.6s; box-shadow: 0 0 10px rgba(212,175,55,0.3); }
+.progress-fill.green { background: linear-gradient(90deg, #059669, var(--success)); box-shadow: 0 0 10px rgba(107,227,164,0.3); }
+.progress-fill.red { background: linear-gradient(90deg, #b91c1c, var(--danger)); box-shadow: 0 0 10px rgba(255,107,107,0.3); }
+.progress-value { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text-2); font-weight: 500; }
+.progress-value .pct { color: var(--gold); margin-left: 6px; font-size: 11px; font-weight: 600; }
+.progress-delta { font-size: 10px; color: var(--text-3); margin-top: 4px; grid-column: 2 / -1; font-variant-numeric: tabular-nums; }
+.progress-delta.up { color: var(--success); }
+.progress-delta.down { color: var(--danger); }
+@media (max-width: 600px) {
+  .metrics-grid { grid-template-columns: 1fr; }
+  .progress-row { grid-template-columns: 90px 1fr; }
+  .progress-row .progress-value { grid-column: 1 / -1; text-align: left; }
+}
+
+/* BURNOUT */
+.bw-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+.bw-metric { background: var(--card-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.bw-metric:focus-within { border-color: var(--gold); }
+.bw-metric-top { display: flex; justify-content: space-between; align-items: center; }
+.bw-metric label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.bw-metric input { width: 60px; background: transparent; border: none; color: var(--text); text-align: right; font-size: 15px; font-weight: 600; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+.bw-spark { height: 22px; color: var(--gold); opacity: 0.7; }
+.bw-spark svg { display: block; width: 100%; height: 100%; }
+.bw-since { font-size: 12px; color: var(--text-3); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.bw-since strong { color: var(--gold); font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 700; }
+.btn { background: var(--card-2); border: 1px solid var(--border-2); color: var(--text-2); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; transition: all 0.15s; }
+.btn:hover { background: var(--gold-soft); border-color: var(--gold); color: var(--gold-bright); }
+.btn-icon { background: transparent; border: none; color: var(--text-3); cursor: pointer; padding: 4px 8px; font-size: 16px; }
+.btn-icon:hover { color: var(--danger); }
+
+/* SYSTEM HEALTH */
+.sh-list { list-style: none; margin: 0 0 10px 0; padding: 0; min-height: 60px; }
+.sh-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card-2); border: 1px solid var(--border); border-left: 3px solid var(--text-3); border-radius: 6px; margin-bottom: 6px; }
+.sh-item.breaking { border-left-color: var(--danger); }
+.sh-item.risky { border-left-color: var(--warning); }
+.sh-item.fixed { border-left-color: var(--success); opacity: 0.5; }
+.sh-item.fixed .sh-text { text-decoration: line-through; }
+.sh-text { flex: 1; font-size: 13px; color: var(--text-2); }
+.sh-item select { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 3px 6px; font-size: 11px; font-family: inherit; text-transform: capitalize; cursor: pointer; }
+.empty-state { color: var(--text-3); padding: 20px; text-align: center; font-style: italic; font-size: 12px; }
+.capture-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.capture-row input { flex: 1; background: var(--card-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 9px 12px; font-size: 13px; font-family: inherit; outline: none; }
+.capture-row input:focus { border-color: var(--gold); }
+
+/* DECISIONS / DELEGATION (table) */
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+thead th { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border-2); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); }
+td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+td input, td select, td textarea { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12px; font-family: inherit; outline: none; resize: vertical; min-height: 22px; }
+td input[type=date] { color: var(--text-3); font-variant-numeric: tabular-nums; }
+td select { text-transform: capitalize; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2376746E' d='M5 7L1 3h8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; padding-right: 16px; font-weight: 600; }
+td select option { background: var(--card); }
+td select[data-status="pending"] { color: var(--warning); }
+td select[data-status="executed"] { color: var(--success); }
+td select[data-status="reviewed"] { color: var(--blue); }
+td select[data-status="failed"] { color: var(--danger); }
+td select[data-status="you-only"] { color: var(--danger); }
+td select[data-status="partial"] { color: var(--warning); }
+td select[data-status="fully-delegated"] { color: var(--blue); }
+td select[data-status="sopd"] { color: var(--success); }
+.dl-head, .crm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+
+/* MOM'S HOUSE */
+.mh-target-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 10px 14px; background: var(--card-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.mh-target-row label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; }
+.mh-target-row input { width: 140px; background: transparent; border: none; color: var(--text); text-align: right; font-size: 16px; font-weight: 700; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+.mh-bar { height: 10px; background: var(--card-2); border-radius: 5px; overflow: hidden; margin: 14px 0 12px; }
+.mh-fill { height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright)); border-radius: 5px; box-shadow: 0 0 12px rgba(212,175,55,0.4); transition: width 0.6s; }
+.mh-stats { display: flex; justify-content: space-between; font-size: 12px; font-variant-numeric: tabular-nums; }
+.mh-pct { color: var(--gold-bright); font-weight: 700; }
+.mh-add { display: flex; gap: 8px; margin-top: 12px; }
+.mh-add input { flex: 1; background: var(--card-2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; }
+.mh-add input:focus { border-color: var(--gold); }
+.mh-log { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); max-height: 120px; overflow-y: auto; }
+.mh-log-item { display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; color: var(--text-3); border-bottom: 1px solid var(--border); }
+.mh-log-item .amount { color: var(--success); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* HEATMAP */
+.heat-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 3px; margin-top: 6px; }
+.heat-cell { aspect-ratio: 1; background: var(--card-2); border: 1px solid var(--border); border-radius: 3px; cursor: pointer; transition: transform 0.1s; min-width: 12px; }
+.heat-cell:hover { transform: scale(1.3); border-color: var(--gold); z-index: 3; position: relative; }
+.heat-cell.l1 { background: rgba(212, 175, 55, 0.15); border-color: rgba(212,175,55,0.2); }
+.heat-cell.l2 { background: rgba(212, 175, 55, 0.30); border-color: rgba(212,175,55,0.35); }
+.heat-cell.l3 { background: rgba(212, 175, 55, 0.55); }
+.heat-cell.l4 { background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright)); box-shadow: 0 0 6px rgba(212,175,55,0.3); }
+.heat-cell.today { outline: 2px solid var(--gold); }
+.heat-legend { display: flex; gap: 4px; justify-content: flex-end; align-items: center; margin-top: 10px; font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; }
+.heat-legend .hl-chip { width: 11px; height: 11px; border-radius: 2px; border: 1px solid var(--border); }
+@media (max-width: 600px) { .heat-grid { grid-template-columns: repeat(10, 1fr); } }
+
+/* YEARLY GOALS */
+.yg-list { display: flex; flex-direction: column; gap: 4px; }
+.yg-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--card-2); border: 1px solid var(--border); border-radius: 8px; }
+.yg-item.done .yg-text { text-decoration: line-through; color: var(--text-3); }
+.yg-cat { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.yg-cat.biz { background: var(--gold); }
+.yg-cat.health { background: var(--success); }
+.yg-cat.faith { background: var(--gold-bright); }
+.yg-cat.family { background: var(--blue); }
+.yg-cat.life { background: var(--purple); }
+.yg-text { flex: 1; font-size: 13px; color: var(--text-2); }
+.yg-deadline { font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* BACKUP */
+.backup-bar { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 22px; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); font-size: 11px; flex-wrap: wrap; }
+.backup-btn { background: var(--card-2); border: 1px solid var(--border); color: var(--text-3); padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-family: inherit; font-weight: 600; }
+.backup-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-soft); }
+.backup-info { margin-left: auto; color: var(--text-3); font-size: 10px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+@media (max-width: 800px) { .grid-2, .grid-3-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 class="dash-title">Strategy</h1>
+  <div class="dash-sub">
+    <a href="day.html">← Day</a>
+    <a href="brain.html">Brain →</a>
+    <a href="index.html">Main →</a>
+    <span style="color: var(--text-3);">· decide · measure · level up</span>
+  </div>
+
+  <!-- WAR ROOM -->
+  <div class="war-room">
+    <div class="card-head"><h2>War Room</h2><div class="card-sub">Clarity under pressure · what ACTUALLY matters now</div></div>
+    <div class="wr-grid">
+      <div class="wr-panel priorities"><div class="wr-label">Priorities <span class="wr-label-count">0/3</span></div><ul class="wr-list" id="wrPriorities"></ul><input class="wr-add" data-wr="priorities" placeholder="+ priority" /></div>
+      <div class="wr-panel fires"><div class="wr-label">Fires <span class="wr-label-count">0/3</span></div><ul class="wr-list" id="wrFires"></ul><input class="wr-add" data-wr="fires" placeholder="+ fire" /></div>
+      <div class="wr-panel opportunities"><div class="wr-label">Opportunities <span class="wr-label-count">0/3</span></div><ul class="wr-list" id="wrOpportunities"></ul><input class="wr-add" data-wr="opportunities" placeholder="+ opportunity" /></div>
+      <div class="wr-panel bottleneck"><div class="wr-label">The ONE Bottleneck</div><textarea class="wr-bottleneck" id="wrBottleneck" placeholder="ONE thing. Not seven."></textarea></div>
+    </div>
+  </div>
+
+  <!-- LEVELS -->
+  <div class="card">
+    <div class="card-head"><h2>Levels</h2><div class="card-sub">Objective progression · proof not vibes</div></div>
+    <div class="lv-current"><div class="lv-badge">LEVEL <span id="lvNum">1</span></div><div class="lv-name" id="lvName">Stabilization</div></div>
+    <div class="lv-bar" id="lvBar"></div>
+    <div class="lv-criteria-title">Criteria to clear this level</div>
+    <ul class="lv-criteria-list" id="lvCriteriaList"></ul>
+    <div class="lv-advance" id="lvAdvance">All criteria met. Ready to level up?<br/><button id="lvAdvanceBtn">Advance →</button></div>
+    <div class="lv-next-title">Next: <strong>Level <span id="lvNextNum">2</span> — <span id="lvNextName">Scaling</span></strong></div>
+    <ul class="lv-next-list" id="lvNextList"></ul>
+  </div>
+
+  <!-- BURNOUT + SYSTEM HEALTH -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head"><h2>Burnout Watch</h2><div class="card-sub">Early warning · daily 1–5</div></div>
+      <div class="bw-grid">
+        <div class="bw-metric"><div class="bw-metric-top"><label>Energy</label><input type="number" min="1" max="5" data-b="energy" /></div><div class="bw-spark" data-spark="energy"></div></div>
+        <div class="bw-metric"><div class="bw-metric-top"><label>Focus</label><input type="number" min="1" max="5" data-b="focus" /></div><div class="bw-spark" data-spark="focus"></div></div>
+        <div class="bw-metric"><div class="bw-metric-top"><label>Irritability</label><input type="number" min="1" max="5" data-b="irritability" /></div><div class="bw-spark" data-spark="irritability"></div></div>
+        <div class="bw-metric"><div class="bw-metric-top"><label>Screen (hr)</label><input type="number" step="0.5" data-b="screen" /></div><div class="bw-spark" data-spark="screen"></div></div>
+      </div>
+      <button class="btn" id="bwRecoveryBtn">+ Mark recovery day</button>
+      <div class="bw-since">Days since recovery: <strong id="bwDays">∞</strong></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>System Health</h2><div class="card-sub">Fix before stress</div></div>
+      <ul class="sh-list" id="shList"></ul>
+      <div class="capture-row"><input type="text" id="shInput" placeholder="Which system is breaking…" /><button class="btn" id="shAdd">Add</button></div>
+    </div>
+  </div>
+
+  <!-- WEEKLY SCORE -->
+  <div class="card">
+    <div class="card-head"><h2>Weekly Score</h2><div class="card-sub" id="wsLabel">Rate each F · /10 · Sunday</div></div>
+    <div class="ws-grid">
+      <div class="ws-cell"><label>Faith</label><div class="ws-input"><input type="number" min="0" max="10" data-ws="faith" /><span>/10</span></div></div>
+      <div class="ws-cell"><label>Finance</label><div class="ws-input"><input type="number" min="0" max="10" data-ws="finance" /><span>/10</span></div></div>
+      <div class="ws-cell"><label>Fitness</label><div class="ws-input"><input type="number" min="0" max="10" data-ws="fitness" /><span>/10</span></div></div>
+      <div class="ws-cell"><label>Family</label><div class="ws-input"><input type="number" min="0" max="10" data-ws="family" /><span>/10</span></div></div>
+      <div class="ws-cell"><label>Focus</label><div class="ws-input"><input type="number" min="0" max="10" data-ws="focus" /><span>/10</span></div></div>
+    </div>
+    <div class="ws-total"><span class="ws-total-label">Total</span><span class="ws-total-value"><span id="wsTotal">0</span> / 50</span></div>
+    <div class="ws-question"><label>What one thing would raise next week's score the most?</label><textarea data-ws="lever" placeholder="One thing. Highest-leverage move."></textarea></div>
+  </div>
+
+  <!-- KPI + GOALS row -->
+  <div class="grid-3-2">
+    <div class="card">
+      <div class="card-head"><h2 id="kpiTitle">May 2026 — KPI Dashboard</h2><div class="card-sub">Live · aggregated from weekly numbers</div></div>
+      <div id="monthlyProgress"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>2026 Goals</h2><div class="card-sub">Yearly direction</div></div>
+      <div class="yg-list" id="yearlyGoals"></div>
+    </div>
+  </div>
+
+  <!-- THIS WEEK NUMBERS -->
+  <div class="card">
+    <div class="card-head"><h2>This Week — Numbers</h2><div class="card-sub" id="weekLabel"></div></div>
+    <div class="metrics-grid">
+      <div class="metric"><label>Revenue ($)</label><input type="number" data-m="revenue" placeholder="0" /></div>
+      <div class="metric"><label>New Clients</label><input type="number" data-m="clients" placeholder="0" /></div>
+      <div class="metric"><label>Onboarded</label><input type="number" data-m="onboarded" placeholder="0" /></div>
+      <div class="metric"><label>Cancellations</label><input type="number" data-m="cancels" placeholder="0" /></div>
+      <div class="metric"><label>Gym Sessions</label><input type="number" data-m="gym" placeholder="0" /></div>
+      <div class="metric"><label>Sleep Avg (hr)</label><input type="number" step="0.5" data-m="sleep" placeholder="0" /></div>
+      <div class="metric"><label>Fajr (/7)</label><input type="number" data-m="fajrweek" placeholder="0" /></div>
+      <div class="metric"><label>Weight (kg)</label><input type="number" step="0.1" data-m="weight" placeholder="0" /></div>
+    </div>
+  </div>
+
+  <!-- MOM'S HOUSE -->
+  <div class="card">
+    <div class="card-head"><h2>Mom's House</h2><div class="card-sub">Pay off by Dec 31, 2026</div></div>
+    <div class="mh-target-row"><label>Total target ($)</label><input type="number" id="mhTarget" placeholder="0" /></div>
+    <div class="mh-bar"><div class="mh-fill" id="mhFill" style="width:0%"></div></div>
+    <div class="mh-stats"><span>Paid: $<span id="mhPaidVal">0</span></span><span>Remaining: $<span id="mhRemaining">0</span></span><span class="mh-pct"><span id="mhPct">0</span>%</span></div>
+    <div class="mh-add"><input type="number" id="mhAmount" placeholder="Add contribution ($)" /><button class="btn" id="mhAddBtn">+ Pay</button></div>
+    <div class="mh-log" id="mhLog"></div>
+  </div>
+
+  <!-- HEATMAP -->
+  <div class="card">
+    <div class="card-head"><h2>60-Day Activity</h2><div class="card-sub">Each cell = day · color = daily checks · click to jump (day.html)</div></div>
+    <div class="heat-grid" id="heatGrid"></div>
+    <div class="heat-legend">less<span class="hl-chip" style="background: var(--card-2);"></span><span class="hl-chip" style="background: rgba(212,175,55,0.15);"></span><span class="hl-chip" style="background: rgba(212,175,55,0.30);"></span><span class="hl-chip" style="background: rgba(212,175,55,0.55);"></span><span class="hl-chip" style="background: linear-gradient(135deg, var(--gold-deep), var(--gold-bright));"></span>more</div>
+  </div>
+
+  <!-- DECISION LOG -->
+  <div class="card">
+    <div class="dl-head"><div><h2 style="margin:0;">Decision Log</h2><div class="card-sub" style="margin-top:4px;">Stop repeating mistakes</div></div><button class="btn" id="dlAdd">+ Decision</button></div>
+    <table>
+      <thead><tr><th style="width:95px;">Date</th><th>Decision</th><th>Why</th><th>Expected</th><th style="width:95px;">Review</th><th style="width:100px;">Status</th><th style="width:24px;"></th></tr></thead>
+      <tbody id="dlBody"></tbody>
+    </table>
+  </div>
+
+  <!-- DELEGATION MATRIX -->
+  <div class="card">
+    <div class="dl-head"><div><h2 style="margin:0;">Delegation Matrix</h2><div class="card-sub" style="margin-top:4px;">Operator → Owner: every recurring task needs ≠ you</div></div><button class="btn" id="dmAdd">+ Task</button></div>
+    <table>
+      <thead><tr><th>Recurring task</th><th style="width:120px;">Current</th><th style="width:120px;">Target</th><th style="width:140px;">Status</th><th style="width:24px;"></th></tr></thead>
+      <tbody id="dmBody"></tbody>
+    </table>
+  </div>
+
+  <!-- BACKUP -->
+  <div class="backup-bar">
+    <button class="backup-btn" id="backupExport">↓ Export Backup</button>
+    <button class="backup-btn" id="backupImport">↑ Import Backup</button>
+    <input type="file" id="backupFile" accept="application/json" style="display:none;" />
+    <span class="backup-info">Strategy data — JSON. Do weekly.</span>
+  </div>
+</div>
+
+<script>
+// ==========================================================
+// STORAGE
+// ==========================================================
+const KEY = 'os-strategy-v1';
+const defaultData = {
+  warRoom: { priorities: [], fires: [], opportunities: [], bottleneck: '' },
+  levels: {
+    current: 1,
+    defs: [
+      { id: 1, name: 'Stabilization', criteria: [
+        '4 gym sessions/week for 3 consecutive weeks',
+        'Fajr on time 20/28 days (one month)',
+        'Sleep avg 8.0+ hr for 4 weeks',
+        'Dashboard used 20/28 days',
+        'War Room kept ≤3 priorities the whole month'
+      ] },
+      { id: 2, name: 'Scaling', criteria: [
+        '$30k/month revenue for 2 consecutive months',
+        'Appointwise bottleneck resolved (logged in Decision Log)',
+        'New VA + 30 days of zero costly mistakes',
+        'Onboarding SOP documented and used 5+ times',
+        '0 lost-revenue cancellations not replaced in 30 days'
+      ] },
+      { id: 3, name: 'Operator → Owner', criteria: [
+        '$100k/month revenue for 2 consecutive months',
+        'CEO Hours 2×/wk for 8 consecutive weeks',
+        'Delegation matrix: every recurring task has an owner ≠ you',
+        'SOPs documented for every role',
+        '1 fully unplugged week without revenue dropping >10%'
+      ] },
+      { id: 4, name: 'Wealth Expansion', criteria: [
+        'Second business launched + first $5k revenue',
+        'First investment executed (stocks, property, biz, anything)',
+        'Dubai property search active (3+ viewings)',
+        'Both businesses profitable for 60 days',
+        "Mom's house fully paid"
+      ] }
+    ],
+    checks: { 1:[false,false,false,false,false], 2:[false,false,false,false,false], 3:[false,false,false,false,false], 4:[false,false,false,false,false] }
+  },
+  weeklyScore: {}, weeklyMetrics: {},
+  monthlyTargets: { '2026-05': { revenue: 60000, clients: 12, onboarded: 12, gym: 16, sleep: 8.5, weight: 70 } },
+  burnout: {}, recoveryDays: [], systems: [], decisions: [], delegation: [],
+  momsHouse: { target: 0, paid: 0, contributions: [] },
+  yearlyGoals: [
+    { id: 'g1', text: 'Scale to $100k/month revenue',            cat: 'biz', deadline: 'Jun 30', done: false },
+    { id: 'g2', text: 'Hire VA account manager',                 cat: 'biz', deadline: 'May 31', done: false },
+    { id: 'g3', text: 'Resolve Appointwise bottleneck',          cat: 'biz', deadline: 'May 31', done: false },
+    { id: 'g4', text: 'Start second business (≥90% automated)',  cat: 'biz', deadline: 'Sep 15', done: false },
+    { id: 'g5', text: "Pay off mom's house",                     cat: 'family', deadline: 'Dec 31', done: false },
+    { id: 'g6', text: 'Begin Dubai house search',                cat: 'life', deadline: 'Dec 31', done: false },
+    { id: 'g7', text: 'Weigh 70kg',                              cat: 'health', deadline: 'Dec 31', done: false },
+    { id: 'g8', text: 'Get RTA driving license',                 cat: 'life', deadline: 'May 14', done: false },
+    { id: 'g9', text: 'Fajr on time — daily discipline',         cat: 'faith', deadline: 'Daily', done: false },
+    { id: 'g10', text: '5 daily prayers on time',                cat: 'faith', deadline: 'Daily', done: false }
+  ],
+  ui: { collapsed: {} }
+};
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return structuredClone(defaultData);
+    const stored = JSON.parse(raw);
+    const merged = Object.assign(structuredClone(defaultData), stored);
+    if (!stored.yearlyGoals || !stored.yearlyGoals.length) merged.yearlyGoals = defaultData.yearlyGoals;
+    if (stored.levels) {
+      merged.levels = { current: stored.levels.current || 1, checks: {}, defs: defaultData.levels.defs };
+      defaultData.levels.defs.forEach(d => {
+        const old = (stored.levels.checks && stored.levels.checks[d.id]) || [];
+        merged.levels.checks[d.id] = d.criteria.map((_, i) => !!old[i]);
+      });
+    }
+    return merged;
+  } catch { return structuredClone(defaultData); }
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+let state = load();
+
+// ==========================================================
+// HELPERS
+// ==========================================================
+function dateKey(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function isoWeekOf(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = (dt.getUTCDay() + 6) % 7;
+  dt.setUTCDate(dt.getUTCDate() - dayNum + 3);
+  const ft = new Date(Date.UTC(dt.getUTCFullYear(), 0, 4));
+  const diff = (dt - ft) / 86400000;
+  const week = 1 + Math.round((diff - 3 + ((ft.getUTCDay() + 6) % 7)) / 7);
+  return dt.getUTCFullYear() + '-W' + String(week).padStart(2,'0');
+}
+function todayKey() { return dateKey(); }
+function monthKey() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+function isoWeek() { return isoWeekOf(new Date()); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ==========================================================
+// WAR ROOM
+// ==========================================================
+const WR_LISTS = ['priorities', 'fires', 'opportunities'];
+const WR_MAX = 3;
+function renderWarRoom() {
+  WR_LISTS.forEach(key => {
+    const wrap = document.getElementById('wr' + key.charAt(0).toUpperCase() + key.slice(1));
+    if (!wrap) return;
+    const arr = state.warRoom[key] || [];
+    wrap.innerHTML = '';
+    arr.forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.className = 'wr-li';
+      li.innerHTML = `<span class="wr-li-text">${escapeHtml(item)}</span><button>×</button>`;
+      li.querySelector('button').addEventListener('click', () => {
+        state.warRoom[key].splice(idx, 1); save(); renderWarRoom();
+      });
+      wrap.appendChild(li);
+    });
+    const panel = wrap.closest('.wr-panel');
+    const label = panel.querySelector('.wr-label');
+    label.innerHTML = `${key.toUpperCase()} <span class="wr-label-count">${arr.length}/${WR_MAX}</span>`;
+    const inp = panel.querySelector('.wr-add');
+    const sing = { priorities: 'priority', fires: 'fire', opportunities: 'opportunity' };
+    if (arr.length >= WR_MAX) { inp.disabled = true; inp.placeholder = `MAX ${WR_MAX} — kill one to add`; }
+    else { inp.disabled = false; inp.placeholder = `+ ${sing[key]}`; }
+  });
+  document.getElementById('wrBottleneck').value = state.warRoom.bottleneck || '';
+}
+document.querySelectorAll('.wr-add').forEach(inp => {
+  inp.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const key = inp.dataset.wr;
+    const val = inp.value.trim();
+    if (!val) return;
+    if (!state.warRoom[key]) state.warRoom[key] = [];
+    if (state.warRoom[key].length >= WR_MAX) { inp.value = ''; return; }
+    state.warRoom[key].push(val); inp.value = ''; save(); renderWarRoom();
+  });
+});
+document.getElementById('wrBottleneck').addEventListener('input', e => { state.warRoom.bottleneck = e.target.value; save(); });
+
+// ==========================================================
+// LEVELS
+// ==========================================================
+function renderLevels() {
+  const cur = state.levels.current;
+  const def = state.levels.defs.find(d => d.id === cur);
+  const next = state.levels.defs.find(d => d.id === cur + 1);
+  document.getElementById('lvNum').textContent = cur;
+  document.getElementById('lvName').textContent = def.name;
+  const bar = document.getElementById('lvBar');
+  bar.innerHTML = '';
+  state.levels.defs.forEach(d => {
+    const seg = document.createElement('div');
+    seg.className = 'lv-segment' + (d.id < cur ? ' done' : d.id === cur ? ' current' : '');
+    bar.appendChild(seg);
+  });
+  const list = document.getElementById('lvCriteriaList');
+  list.innerHTML = '';
+  if (!state.levels.checks[cur]) state.levels.checks[cur] = def.criteria.map(() => false);
+  const checks = state.levels.checks[cur];
+  let allDone = true;
+  def.criteria.forEach((c, i) => {
+    if (!checks[i]) allDone = false;
+    const li = document.createElement('li');
+    li.className = checks[i] ? 'done' : '';
+    li.innerHTML = `<input type="checkbox" class="check" ${checks[i]?'checked':''} /><span class="lvc-text">${escapeHtml(c)}</span>`;
+    li.querySelector('input').addEventListener('change', e => {
+      state.levels.checks[cur][i] = e.target.checked; save(); renderLevels();
+    });
+    list.appendChild(li);
+  });
+  document.getElementById('lvAdvance').classList.toggle('show', allDone && !!next);
+  const nextList = document.getElementById('lvNextList');
+  nextList.innerHTML = '';
+  if (next) {
+    document.getElementById('lvNextNum').textContent = next.id;
+    document.getElementById('lvNextName').textContent = next.name;
+    next.criteria.forEach(c => { const li = document.createElement('li'); li.textContent = c; nextList.appendChild(li); });
+  } else {
+    document.getElementById('lvNextNum').textContent = '∞';
+    document.getElementById('lvNextName').textContent = "You've built it";
+  }
+}
+document.getElementById('lvAdvanceBtn').addEventListener('click', () => {
+  if (state.levels.current < state.levels.defs.length) { state.levels.current++; save(); renderLevels(); }
+});
+
+// ==========================================================
+// BURNOUT
+// ==========================================================
+function renderBurnout() {
+  const k = todayKey();
+  const data = state.burnout[k] || {};
+  document.querySelectorAll('[data-b]').forEach(inp => { inp.value = data[inp.dataset.b] ?? ''; });
+  if (!state.recoveryDays.length) document.getElementById('bwDays').textContent = '∞';
+  else {
+    const last = new Date(state.recoveryDays[state.recoveryDays.length - 1] + 'T00:00:00');
+    const today = new Date(todayKey() + 'T00:00:00');
+    document.getElementById('bwDays').textContent = Math.max(0, Math.floor((today - last) / 86400000));
+  }
+  document.querySelectorAll('[data-spark]').forEach(el => {
+    const metric = el.dataset.spark;
+    const max = metric === 'screen' ? 12 : 5;
+    renderSparkline(el, get7DayValues(metric), max);
+  });
+}
+function get7DayValues(metric) {
+  const vals = [];
+  const ref = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const day = new Date(ref); day.setDate(ref.getDate() - i);
+    const v = state.burnout[dateKey(day)]?.[metric];
+    vals.push(typeof v === 'number' ? v : null);
+  }
+  return vals;
+}
+function renderSparkline(container, values, max) {
+  const w = 100, h = 22, pad = 2;
+  const step = (w - pad * 2) / (values.length - 1);
+  let path = '', started = false;
+  values.forEach((v, i) => {
+    if (v === null) return;
+    const x = pad + i * step;
+    const y = h - pad - (v / max) * (h - pad * 2);
+    path += (started ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+    started = true;
+  });
+  const dots = values.map((v, i) => {
+    if (v === null) return '';
+    const x = pad + i * step;
+    const y = h - pad - (v / max) * (h - pad * 2);
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.5" fill="currentColor" />`;
+  }).join('');
+  if (!started) { container.innerHTML = `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><text x="${w/2}" y="${h/2+3}" text-anchor="middle" fill="currentColor" font-size="9" opacity="0.5">no data</text></svg>`; return; }
+  container.innerHTML = `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />${dots}</svg>`;
+}
+document.querySelectorAll('[data-b]').forEach(inp => {
+  inp.addEventListener('input', e => {
+    const k = todayKey();
+    if (!state.burnout[k]) state.burnout[k] = {};
+    state.burnout[k][inp.dataset.b] = e.target.value === '' ? null : Number(e.target.value);
+    save();
+  });
+});
+document.getElementById('bwRecoveryBtn').addEventListener('click', () => {
+  const k = todayKey();
+  if (!state.recoveryDays.includes(k)) { state.recoveryDays.push(k); state.recoveryDays.sort(); save(); renderBurnout(); }
+});
+
+// ==========================================================
+// SYSTEM HEALTH
+// ==========================================================
+function renderSystems() {
+  const wrap = document.getElementById('shList');
+  wrap.innerHTML = '';
+  if (!state.systems.length) { wrap.innerHTML = `<li class="empty-state">No broken systems logged. Look harder.</li>`; return; }
+  state.systems.forEach(s => {
+    const li = document.createElement('li');
+    li.className = 'sh-item ' + (s.status || 'risky');
+    li.innerHTML = `<span class="sh-text">${escapeHtml(s.name)}</span><select><option value="breaking" ${s.status==='breaking'?'selected':''}>Breaking</option><option value="risky" ${s.status==='risky'?'selected':''}>Risky</option><option value="fixed" ${s.status==='fixed'?'selected':''}>Fixed</option></select><button class="btn-icon" title="Remove">×</button>`;
+    li.querySelector('select').addEventListener('change', e => { s.status = e.target.value; save(); renderSystems(); });
+    li.querySelector('.btn-icon').addEventListener('click', () => { state.systems = state.systems.filter(x => x.id !== s.id); save(); renderSystems(); });
+    wrap.appendChild(li);
+  });
+}
+document.getElementById('shAdd').addEventListener('click', () => {
+  const txt = document.getElementById('shInput').value.trim();
+  if (!txt) return;
+  state.systems.push({ id: Date.now()+'', name: txt, status: 'risky' });
+  document.getElementById('shInput').value = '';
+  save(); renderSystems();
+});
+document.getElementById('shInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('shAdd').click(); });
+
+// ==========================================================
+// WEEKLY SCORE
+// ==========================================================
+const WS_KEYS = ['faith', 'finance', 'fitness', 'family', 'focus'];
+function renderWeeklyScore() {
+  const w = isoWeek();
+  document.getElementById('wsLabel').textContent = 'Rate each F · /10 · ' + w;
+  const data = state.weeklyScore[w] || {};
+  let total = 0;
+  document.querySelectorAll('[data-ws]').forEach(inp => {
+    const k = inp.dataset.ws;
+    inp.value = data[k] ?? '';
+    if (WS_KEYS.includes(k) && typeof data[k] === 'number') total += data[k];
+  });
+  document.getElementById('wsTotal').textContent = total;
+}
+document.querySelectorAll('[data-ws]').forEach(inp => {
+  inp.addEventListener('input', e => {
+    const w = isoWeek();
+    if (!state.weeklyScore[w]) state.weeklyScore[w] = {};
+    const key = inp.dataset.ws;
+    if (WS_KEYS.includes(key)) state.weeklyScore[w][key] = e.target.value === '' ? null : Math.max(0, Math.min(10, Number(e.target.value)));
+    else state.weeklyScore[w][key] = e.target.value;
+    save(); renderWeeklyScore();
+  });
+});
+
+// ==========================================================
+// METRICS / KPI
+// ==========================================================
+function renderMetrics() {
+  const w = isoWeek();
+  document.getElementById('weekLabel').textContent = w;
+  const m = state.weeklyMetrics[w] || {};
+  document.querySelectorAll('.metric input').forEach(inp => { inp.value = m[inp.dataset.m] ?? ''; });
+}
+document.querySelectorAll('.metric input').forEach(inp => {
+  inp.addEventListener('input', e => {
+    const w = isoWeek();
+    if (!state.weeklyMetrics[w]) state.weeklyMetrics[w] = {};
+    state.weeklyMetrics[w][inp.dataset.m] = e.target.value === '' ? null : Number(e.target.value);
+    save(); renderMonthlyProgress();
+  });
+});
+
+function renderMonthlyProgress() {
+  const m = monthKey();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const d = new Date();
+  document.getElementById('kpiTitle').textContent = monthNames[d.getMonth()] + ' ' + d.getFullYear() + ' — KPI Dashboard';
+  const targets = state.monthlyTargets[m] || state.monthlyTargets['2026-05'];
+  const monthAgg = { revenue: 0, clients: 0, onboarded: 0, gym: 0, fajrweek: 0 };
+  let sleepSum = 0, sleepCount = 0, weightLatest = 0;
+  Object.entries(state.weeklyMetrics).forEach(([wk, vals]) => {
+    Object.entries(vals || {}).forEach(([k, v]) => {
+      if (typeof v !== 'number') return;
+      if (monthAgg[k] !== undefined) monthAgg[k] += v;
+      if (k === 'sleep') { sleepSum += v; sleepCount++; }
+      if (k === 'weight') weightLatest = v;
+    });
+  });
+  const sleepAvg = sleepCount ? (sleepSum / sleepCount) : 0;
+  const tw = state.weeklyMetrics[isoWeek()] || {};
+  const lwd = new Date(); lwd.setDate(lwd.getDate() - 7);
+  const lw = state.weeklyMetrics[isoWeekOf(lwd)] || {};
+  function delta(k) {
+    const a = typeof tw[k] === 'number' ? tw[k] : null;
+    const b = typeof lw[k] === 'number' ? lw[k] : null;
+    if (a === null && b === null) return null;
+    if (a === null) return { txt: `last wk: ${b}`, cls: '' };
+    if (b === null) return { txt: `this wk: ${a}`, cls: 'up' };
+    const diff = a - b;
+    const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '·';
+    return { txt: `this wk ${a} ${arrow} (last ${b})`, cls: diff > 0 ? 'up' : diff < 0 ? 'down' : '' };
+  }
+  const rows = [
+    { label: 'Revenue', value: monthAgg.revenue, target: targets.revenue, format: v => '$' + v.toLocaleString(), wk: 'revenue' },
+    { label: 'New Clients', value: monthAgg.clients, target: targets.clients, format: v => v, wk: 'clients' },
+    { label: 'Onboarded', value: monthAgg.onboarded, target: targets.onboarded, format: v => v, wk: 'onboarded' },
+    { label: 'Gym', value: monthAgg.gym, target: targets.gym, format: v => v, wk: 'gym' },
+    { label: 'Sleep avg', value: +sleepAvg.toFixed(1), target: targets.sleep || 8.5, format: v => v + 'h', wk: 'sleep' },
+    { label: 'Fajr / 7', value: monthAgg.fajrweek, target: 28, format: v => v, wk: 'fajrweek' },
+    { label: 'Weight', value: weightLatest, target: targets.weight || 70, format: v => v ? v + 'kg' : '—', wk: 'weight' }
+  ];
+  const wrap = document.getElementById('monthlyProgress');
+  wrap.innerHTML = rows.map(r => {
+    const pct = Math.min(100, Math.round((r.value / r.target) * 100)) || 0;
+    const color = pct >= 100 ? 'green' : pct < 25 ? 'red' : '';
+    const dd = r.wk ? delta(r.wk) : null;
+    const deltaHtml = dd ? `<div class="progress-delta ${dd.cls}">${dd.txt}</div>` : '';
+    return `<div class="progress-row"><div class="progress-label">${r.label}</div><div class="progress-bar"><div class="progress-fill ${color}" style="width:${pct}%"></div></div><div class="progress-value">${r.format(r.value)} <span class="pct">${pct}%</span></div>${deltaHtml}</div>`;
+  }).join('');
+}
+
+// ==========================================================
+// YEARLY GOALS
+// ==========================================================
+function renderYearlyGoals() {
+  const wrap = document.getElementById('yearlyGoals');
+  wrap.innerHTML = '';
+  state.yearlyGoals.forEach(g => {
+    const div = document.createElement('div');
+    div.className = 'yg-item' + (g.done ? ' done' : '');
+    div.innerHTML = `<input type="checkbox" class="check" ${g.done?'checked':''} /><span class="yg-cat ${g.cat}" title="${g.cat}"></span><span class="yg-text">${escapeHtml(g.text)}</span><span class="yg-deadline">${escapeHtml(g.deadline)}</span>`;
+    div.querySelector('input').addEventListener('change', e => { g.done = e.target.checked; div.classList.toggle('done', e.target.checked); save(); });
+    wrap.appendChild(div);
+  });
+}
+
+// ==========================================================
+// DECISIONS
+// ==========================================================
+const DL_STATUSES = ['pending', 'executed', 'reviewed', 'failed'];
+function renderDecisions() {
+  const tbody = document.getElementById('dlBody');
+  tbody.innerHTML = '';
+  if (!state.decisions.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No decisions logged.</td></tr>`; return; }
+  state.decisions.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><input type="date" data-f="date" value="${d.date || ''}" /></td><td><textarea data-f="decision" placeholder="What you decided…">${escapeHtml(d.decision || '')}</textarea></td><td><textarea data-f="why" placeholder="Why">${escapeHtml(d.why || '')}</textarea></td><td><textarea data-f="expected" placeholder="Expected result">${escapeHtml(d.expected || '')}</textarea></td><td><input type="date" data-f="reviewDate" value="${d.reviewDate || ''}" /></td><td><select data-f="status" data-status="${d.status || 'pending'}">${DL_STATUSES.map(s => `<option value="${s}" ${d.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="btn-icon" title="Delete">×</button></td>`;
+    tr.querySelectorAll('[data-f]').forEach(el => {
+      el.addEventListener('input', () => { d[el.dataset.f] = el.value; save(); });
+      el.addEventListener('change', () => { d[el.dataset.f] = el.value; if (el.dataset.f === 'status') el.dataset.status = el.value; save(); });
+    });
+    tr.querySelector('.btn-icon').addEventListener('click', () => {
+      if (confirm('Delete this decision?')) { state.decisions = state.decisions.filter(x => x.id !== d.id); save(); renderDecisions(); }
+    });
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('dlAdd').addEventListener('click', () => {
+  const today = todayKey();
+  const review = new Date(); review.setDate(review.getDate() + 30);
+  state.decisions.unshift({ id: Date.now()+'-'+Math.random().toString(36).slice(2,7), date: today, decision: '', why: '', expected: '', reviewDate: dateKey(review), status: 'pending' });
+  save(); renderDecisions();
+});
+
+// ==========================================================
+// DELEGATION
+// ==========================================================
+const DM_STATUSES = ['you-only', 'partial', 'fully-delegated', 'sopd'];
+function renderDelegation() {
+  const tbody = document.getElementById('dmBody');
+  tbody.innerHTML = '';
+  if (!state.delegation.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No tasks logged. Add the recurring stuff only YOU currently do.</td></tr>`; return; }
+  state.delegation.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><input data-f="task" value="${escapeHtml(d.task||'')}" placeholder="e.g. Daily campaign launch" /></td><td><input data-f="currentOwner" value="${escapeHtml(d.currentOwner||'')}" placeholder="You" /></td><td><input data-f="targetOwner" value="${escapeHtml(d.targetOwner||'')}" placeholder="VA / partner / AI" /></td><td><select data-f="status" data-status="${d.status||'you-only'}">${DM_STATUSES.map(s => `<option value="${s}" ${d.status===s?'selected':''}>${s.replace('-',' ')}</option>`).join('')}</select></td><td><button class="btn-icon" title="Delete">×</button></td>`;
+    tr.querySelectorAll('[data-f]').forEach(el => {
+      el.addEventListener('input', () => { d[el.dataset.f] = el.value; save(); });
+      el.addEventListener('change', () => { d[el.dataset.f] = el.value; if (el.dataset.f === 'status') el.dataset.status = el.value; save(); });
+    });
+    tr.querySelector('.btn-icon').addEventListener('click', () => {
+      if (confirm('Delete this task?')) { state.delegation = state.delegation.filter(x => x.id !== d.id); save(); renderDelegation(); }
+    });
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('dmAdd').addEventListener('click', () => {
+  state.delegation.push({ id: Date.now()+'', task: '', currentOwner: 'You', targetOwner: '', status: 'you-only' });
+  save(); renderDelegation();
+});
+
+// ==========================================================
+// MOM'S HOUSE
+// ==========================================================
+function renderMomsHouse() {
+  const mh = state.momsHouse;
+  document.getElementById('mhTarget').value = mh.target || '';
+  const pct = mh.target > 0 ? Math.min(100, Math.round((mh.paid / mh.target) * 100)) : 0;
+  document.getElementById('mhFill').style.width = pct + '%';
+  document.getElementById('mhPaidVal').textContent = (mh.paid || 0).toLocaleString();
+  document.getElementById('mhRemaining').textContent = Math.max(0, (mh.target || 0) - (mh.paid || 0)).toLocaleString();
+  document.getElementById('mhPct').textContent = pct;
+  const log = document.getElementById('mhLog');
+  log.innerHTML = '';
+  (mh.contributions || []).slice().reverse().forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'mh-log-item';
+    div.innerHTML = `<span>${c.date}</span><span class="amount">+$${(c.amount || 0).toLocaleString()}</span>`;
+    log.appendChild(div);
+  });
+}
+document.getElementById('mhTarget').addEventListener('input', e => { state.momsHouse.target = Number(e.target.value) || 0; save(); renderMomsHouse(); });
+document.getElementById('mhAddBtn').addEventListener('click', () => {
+  const amt = Number(document.getElementById('mhAmount').value);
+  if (!amt || amt <= 0) return;
+  state.momsHouse.paid = (state.momsHouse.paid || 0) + amt;
+  state.momsHouse.contributions.push({ id: Date.now()+'', date: todayKey(), amount: amt });
+  document.getElementById('mhAmount').value = '';
+  save(); renderMomsHouse();
+});
+
+// ==========================================================
+// HEATMAP
+// ==========================================================
+function renderHeatmap() {
+  // Density = number of decisions+systems+goals progress on a given day (simple: count weekly metrics presence)
+  // Better: read os-day-v1 to get daily checks. Cross-page peek.
+  let dayState = {};
+  try { dayState = JSON.parse(localStorage.getItem('os-day-v1') || '{}'); } catch (e) {}
+  const daily = dayState.dailyChecks || {};
+  const bigD = dayState.bigDomino || {};
+  function dens(k) {
+    const c = daily[k] || {};
+    let n = 0;
+    ['fajr','gym','zipcodes','aileads','loop','win'].forEach(key => { if (c[key]) n++; });
+    if (bigD[k]) n++;
+    return n;
+  }
+  const grid = document.getElementById('heatGrid');
+  grid.innerHTML = '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayK = dateKey(today);
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const k = dateKey(d);
+    const v = dens(k);
+    const level = v === 0 ? '' : v <= 2 ? 'l1' : v <= 4 ? 'l2' : v <= 5 ? 'l3' : 'l4';
+    const cell = document.createElement('div');
+    cell.className = 'heat-cell ' + level + (k === todayK ? ' today' : '');
+    cell.title = k + ' · ' + v + '/7';
+    cell.addEventListener('click', () => { window.location.href = 'day.html'; });
+    grid.appendChild(cell);
+  }
+}
+
+// ==========================================================
+// BACKUP
+// ==========================================================
+document.getElementById('backupExport').addEventListener('click', () => {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `os-strategy-backup-${todayKey()}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+document.getElementById('backupImport').addEventListener('click', () => document.getElementById('backupFile').click());
+document.getElementById('backupFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!confirm('Replace ALL strategy data with imported backup?')) return;
+      localStorage.setItem(KEY, JSON.stringify(imported));
+      location.reload();
+    } catch (err) { alert('Invalid: ' + err.message); }
+  };
+  reader.readAsText(file);
+});
+
+// ==========================================================
+// COLLAPSIBLES
+// ==========================================================
+function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section'; }
+document.querySelectorAll('.card, .war-room').forEach(card => {
+  const h2 = card.querySelector('.card-head h2');
+  if (!h2) return;
+  if (!card.dataset.collapseId) {
+    const t = h2.textContent.replace(/\b\d{4}\b/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/gi, '').trim();
+    card.dataset.collapseId = slugify(t || h2.textContent);
+  }
+  const id = card.dataset.collapseId;
+  if (state.ui?.collapsed?.[id]) card.classList.add('collapsed');
+  h2.addEventListener('click', () => {
+    card.classList.toggle('collapsed');
+    if (!state.ui) state.ui = { collapsed: {} };
+    state.ui.collapsed[id] = card.classList.contains('collapsed');
+    save();
+  });
+});
+
+// ==========================================================
+// RENDER ALL + INIT
+// ==========================================================
+function renderAll() {
+  renderWarRoom(); renderLevels(); renderBurnout(); renderSystems(); renderWeeklyScore();
+  renderMetrics(); renderMonthlyProgress(); renderYearlyGoals(); renderDecisions();
+  renderDelegation(); renderMomsHouse(); renderHeatmap();
+}
+renderAll();
+
+// Cloud sync
+function startSync() {
+  if (!window.initCloudSync) return;
+  initCloudSync({
+    appKey: 'os-strategy',
+    syncedKeys: [KEY],
+    onApplied: () => { state = load(); renderAll(); }
+  });
+}
+if (window.initCloudSync) startSync();
+else window.addEventListener('load', startSync);
+</script>
+</body>
+</html>
