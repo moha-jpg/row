@@ -348,6 +348,208 @@
 @media (max-width: 600px) {
   .os-fg-grid, .os-bw-grid, .os-dc-grid, .os-nz-checks { grid-template-columns: 1fr; }
 }
+
+/* ===== PRIORITIES (three / week) ===== */
+.os-prio { display: flex; flex-direction: column; }
+.os-prio-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.os-prio-row:last-child { border-bottom: none; }
+.os-prio-row.done .os-prio-num { background: rgba(107,227,164,0.12); border-color: #6BE3A4; color: #6BE3A4; }
+.os-prio-num { width: 22px; height: 22px; border-radius: 50%; background: #14141a; border: 1px solid rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #76746E; flex-shrink: 0; }
+.os-prio-text { flex: 1; background: transparent; border: none; color: #FAFAFA; font-size: 16px; outline: none; font-family: inherit; padding: 4px 0; }
+.os-prio-text::placeholder { color: #76746E; }
+.os-prio-row.done .os-prio-text { text-decoration: line-through; color: #76746E; }
+
+/* ===== GOALS BY CATEGORY ===== */
+.os-gbc { display: flex; flex-direction: column; gap: 18px; }
+.os-gbc-section { padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+.os-gbc-section:first-child { padding-top: 0; border-top: none; }
+.os-gbc-head { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid; }
+.os-gbc-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.os-gbc-list { list-style: none; padding: 0; margin: 0; }
+.os-gbc-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(20,20,26,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 4px; font-size: 13px; color: #B8B6B0; }
+.os-gbc-item.done { color: #6BE3A4; background: rgba(107,227,164,0.06); border-color: rgba(107,227,164,0.25); }
+.os-gbc-item.done .os-gbc-text { text-decoration: line-through; opacity: 0.7; }
+.os-gbc-text { flex: 1; }
+.os-gbc-dl { font-size: 9px; color: #76746E; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ===== MONTHLY TARGETS ===== */
+.os-mg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.os-mg-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; }
+.os-mg-row label { font-size: 11px; color: #76746E; text-transform: uppercase; letter-spacing: 0.08em; }
+.os-mg-row input { width: 100px; background: transparent; border: none; color: #FAFAFA; text-align: right; font-size: 16px; font-weight: 600; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+
+/* ===== WAR ROOM ===== */
+.os-wr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.os-wr-panel { background: rgba(20,20,26,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; min-height: 140px; }
+.os-wr-panel.priorities { border-left: 3px solid #6BE3A4; }
+.os-wr-panel.fires { border-left: 3px solid #FF6B6B; }
+.os-wr-panel.opportunities { border-left: 3px solid #7DD3FC; }
+.os-wr-panel.bottleneck { border-left: 3px solid #d4af37; background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(20,20,26,0.6)); }
+.os-wr-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; }
+.os-wr-count { color: #76746E; font-weight: 600; font-size: 9px; margin-left: 6px; }
+.os-wr-panel.priorities .os-wr-label { color: #6BE3A4; }
+.os-wr-panel.fires .os-wr-label { color: #FF6B6B; }
+.os-wr-panel.opportunities .os-wr-label { color: #7DD3FC; }
+.os-wr-panel.bottleneck .os-wr-label { color: #d4af37; }
+.os-wr-list { list-style: none; margin: 0 0 6px 0; padding: 0; flex: 1; }
+.os-wr-li { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #B8B6B0; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04); }
+.os-wr-li:last-child { border-bottom: none; }
+.os-wr-li span { flex: 1; line-height: 1.4; }
+.os-wr-li button { background: transparent; border: none; color: #76746E; cursor: pointer; font-size: 13px; padding: 0 4px; }
+.os-wr-li button:hover { color: #FF6B6B; }
+.os-wr-add { width: 100%; background: rgba(5,5,6,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #FAFAFA; padding: 6px 10px; font-size: 12px; font-family: inherit; outline: none; }
+.os-wr-add:focus { border-color: #d4af37; }
+.os-wr-add:disabled { background: rgba(20,20,26,0.4); color: #76746E; border-style: dashed; cursor: not-allowed; }
+.os-wr-bottleneck { width: 100%; background: transparent; border: none; color: #e6c068; padding: 4px 0; font-size: 14px; font-weight: 600; font-family: inherit; outline: none; resize: none; flex: 1; min-height: 60px; }
+.os-wr-bottleneck::placeholder { color: #76746E; font-weight: 400; }
+@media (max-width: 700px) { .os-wr-grid { grid-template-columns: 1fr; } }
+
+/* ===== LEVELS ===== */
+.os-lv-current { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+.os-lv-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.22em; color: #d4af37; background: rgba(212,175,55,0.10); border: 1px solid rgba(212,175,55,0.28); padding: 4px 9px; border-radius: 4px; }
+.os-lv-name { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #FAFAFA; }
+.os-lv-bar { display: flex; gap: 5px; margin: 12px 0 16px; }
+.os-lv-seg { flex: 1; height: 7px; background: #14141a; border-radius: 3px; }
+.os-lv-seg.done { background: linear-gradient(90deg, #b8941f, #e6c068); box-shadow: 0 0 10px rgba(212,175,55,0.4); }
+.os-lv-seg.current { background: rgba(212,175,55,0.10); border: 1px solid #d4af37; }
+.os-lv-title { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #76746E; margin-bottom: 8px; }
+.os-lv-list { list-style: none; padding: 0; margin: 0; }
+.os-lv-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(20,20,26,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; margin-bottom: 4px; font-size: 13px; color: #B8B6B0; }
+.os-lv-list li.done { color: #6BE3A4; background: rgba(107,227,164,0.06); border-color: rgba(107,227,164,0.3); }
+.os-lv-list li.done span:not(.os-check) { text-decoration: line-through; opacity: 0.7; }
+.os-lv-advance { margin-top: 12px; padding: 12px; background: rgba(212,175,55,0.10); border: 1px solid #d4af37; border-radius: 10px; font-size: 13px; color: #e6c068; text-align: center; }
+.os-lv-advance button { background: #d4af37; border: none; color: #050506; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; font-family: inherit; margin-top: 6px; }
+.os-lv-next { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #76746E; margin-top: 16px; margin-bottom: 8px; }
+.os-lv-next strong { color: #d4af37; }
+.os-lv-next-list { list-style: none; padding: 0; margin: 0; }
+.os-lv-next-list li { color: #76746E; opacity: 0.6; padding: 4px 12px; font-size: 12px; }
+.os-lv-next-list li::before { content: '○ '; margin-right: 4px; }
+
+/* ===== WEEKLY SCORE ===== */
+.os-ws-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.os-ws-cell { background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px; text-align: center; }
+.os-ws-cell label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: #76746E; display: block; margin-bottom: 8px; font-weight: 600; }
+.os-ws-input { display: flex; justify-content: center; align-items: baseline; gap: 4px; }
+.os-ws-input input { width: 48px; background: transparent; border: none; color: #FAFAFA; text-align: center; font-size: 24px; font-weight: 700; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+.os-ws-input span { font-size: 11px; color: #76746E; }
+.os-ws-total { margin-top: 14px; padding: 10px 12px; background: rgba(20,20,26,0.6); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+.os-ws-total span:first-child { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: #d4af37; font-weight: 600; }
+.os-ws-total-v { font-size: 18px; font-weight: 700; color: #e6c068; font-variant-numeric: tabular-nums; }
+.os-ws-q { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+.os-ws-q label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #d4af37; margin-bottom: 8px; font-weight: 600; }
+.os-ws-q textarea { width: 100%; min-height: 60px; background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; color: #FAFAFA; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; outline: none; }
+.os-ws-q textarea:focus { border-color: #d4af37; }
+@media (max-width: 600px) { .os-ws-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ===== WEEK NUMBERS ===== */
+.os-wn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.os-wn-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; }
+.os-wn-row label { font-size: 10px; color: #76746E; text-transform: uppercase; letter-spacing: 0.08em; }
+.os-wn-row input { width: 100px; background: transparent; border: none; color: #FAFAFA; text-align: right; font-size: 16px; font-weight: 600; outline: none; font-family: inherit; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { .os-wn-grid, .os-mg-grid { grid-template-columns: 1fr; } }
+
+/* ===== KPI DASHBOARD ===== */
+.os-kpi-list { display: flex; flex-direction: column; }
+.os-kpi-row { display: grid; grid-template-columns: 110px 1fr 130px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.os-kpi-row:last-child { border-bottom: none; }
+.os-kpi-label { color: #76746E; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+.os-kpi-bar { height: 6px; background: #14141a; border-radius: 3px; overflow: hidden; }
+.os-kpi-fill { height: 100%; background: linear-gradient(90deg, #b8941f, #e6c068); border-radius: 3px; box-shadow: 0 0 10px rgba(212,175,55,0.3); transition: width 0.6s; }
+.os-kpi-fill.green { background: linear-gradient(90deg, #059669, #6BE3A4); }
+.os-kpi-fill.red { background: linear-gradient(90deg, #b91c1c, #FF6B6B); }
+.os-kpi-val { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; color: #B8B6B0; font-weight: 500; }
+.os-kpi-pct { color: #d4af37; margin-left: 6px; font-size: 11px; font-weight: 700; }
+.os-kpi-delta { font-size: 10px; color: #76746E; margin-top: 4px; grid-column: 2 / -1; font-variant-numeric: tabular-nums; }
+.os-kpi-delta.up { color: #6BE3A4; }
+.os-kpi-delta.down { color: #FF6B6B; }
+@media (max-width: 600px) {
+  .os-kpi-row { grid-template-columns: 90px 1fr; }
+  .os-kpi-row .os-kpi-val { grid-column: 1 / -1; text-align: left; }
+}
+
+/* ===== DECISION LOG / DELEGATION (table) ===== */
+.os-dl-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.os-dl-table thead th { padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.10); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #76746E; }
+.os-dl-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.os-dl-table tr:last-child td { border-bottom: none; }
+.os-dl-table td input, .os-dl-table td select, .os-dl-table td textarea { width: 100%; background: transparent; border: none; color: #FAFAFA; font-size: 12px; font-family: inherit; outline: none; resize: vertical; min-height: 22px; }
+.os-dl-table td input[type=date] { color: #76746E; font-variant-numeric: tabular-nums; }
+.os-dl-table td select { text-transform: capitalize; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2376746E' d='M5 7L1 3h8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; padding-right: 16px; font-weight: 600; }
+.os-dl-table td select option { background: #0d0d10; }
+.os-dl-table td select[data-status="pending"] { color: #F2C063; }
+.os-dl-table td select[data-status="executed"] { color: #6BE3A4; }
+.os-dl-table td select[data-status="reviewed"] { color: #7DD3FC; }
+.os-dl-table td select[data-status="failed"] { color: #FF6B6B; }
+.os-dl-table td select[data-status="you-only"] { color: #FF6B6B; }
+.os-dl-table td select[data-status="partial"] { color: #F2C063; }
+.os-dl-table td select[data-status="fully-delegated"] { color: #7DD3FC; }
+.os-dl-table td select[data-status="sopd"] { color: #6BE3A4; }
+.os-dl-table td select[data-status="lead"] { color: #F2C063; }
+.os-dl-table td select[data-status="talking"] { color: #7DD3FC; }
+.os-dl-table td select[data-status="signed"] { color: #22d3ee; }
+.os-dl-table td select[data-status="onboarding"] { color: #fb923c; }
+.os-dl-table td select[data-status="live"] { color: #6BE3A4; }
+.os-dl-table td select[data-status="paused"] { color: #76746E; }
+.os-dl-table td select[data-status="churned"] { color: #FF6B6B; }
+
+/* ===== SYSTEM HEALTH ===== */
+.os-sh-list { list-style: none; margin: 0 0 10px 0; padding: 0; min-height: 50px; }
+.os-sh-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-left: 3px solid #76746E; border-radius: 6px; margin-bottom: 6px; }
+.os-sh-item.breaking { border-left-color: #FF6B6B; }
+.os-sh-item.risky { border-left-color: #F2C063; }
+.os-sh-item.fixed { border-left-color: #6BE3A4; opacity: 0.5; }
+.os-sh-item.fixed .os-sh-text { text-decoration: line-through; }
+.os-sh-text { flex: 1; font-size: 13px; color: #B8B6B0; }
+.os-sh-item select { background: #0d0d10; border: 1px solid rgba(255,255,255,0.06); color: #FAFAFA; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-family: inherit; text-transform: capitalize; cursor: pointer; }
+.os-sh-add { display: flex; gap: 8px; }
+.os-sh-add input { flex: 1; background: #14141a; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: #FAFAFA; padding: 9px 12px; font-size: 13px; outline: none; font-family: inherit; }
+.os-sh-add input:focus { border-color: #d4af37; }
+
+/* ===== HEATMAP ===== */
+.os-heat-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 3px; margin-top: 6px; }
+.os-heat-cell { aspect-ratio: 1; background: #14141a; border: 1px solid rgba(255,255,255,0.06); border-radius: 3px; min-width: 12px; transition: transform 0.1s; }
+.os-heat-cell:hover { transform: scale(1.3); border-color: #d4af37; }
+.os-heat-cell.l1 { background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.2); }
+.os-heat-cell.l2 { background: rgba(212,175,55,0.30); border-color: rgba(212,175,55,0.35); }
+.os-heat-cell.l3 { background: rgba(212,175,55,0.55); }
+.os-heat-cell.l4 { background: linear-gradient(135deg, #b8941f, #e6c068); box-shadow: 0 0 6px rgba(212,175,55,0.3); }
+.os-heat-cell.today { outline: 2px solid #d4af37; }
+.os-heat-legend { display: flex; gap: 4px; justify-content: flex-end; align-items: center; margin-top: 10px; font-size: 10px; color: #76746E; letter-spacing: 0.08em; text-transform: uppercase; }
+.os-heat-chip { width: 11px; height: 11px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.06); }
+@media (max-width: 600px) { .os-heat-grid { grid-template-columns: repeat(10, 1fr); } }
+
+/* ===== CAPTURE / LOOPS ===== */
+.os-cap-bar { display: flex; gap: 8px; margin-bottom: 10px; align-items: stretch; flex-wrap: wrap; }
+.os-cap-bar input[type=text], .os-cap-bar textarea { flex: 1; min-width: 120px; background: #14141a; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: #FAFAFA; padding: 9px 12px; font-size: 14px; font-family: inherit; outline: none; resize: none; }
+.os-cap-bar input:focus, .os-cap-bar textarea:focus { border-color: #d4af37; }
+.os-tag-sel { background: #14141a; border: 1px solid rgba(255,255,255,0.06); color: #FAFAFA; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-family: inherit; cursor: pointer; outline: none; }
+.os-tag-sel:focus { border-color: #d4af37; }
+.os-list-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 5px; }
+.os-list-item.done { opacity: 0.4; }
+.os-list-item.done .os-list-text { text-decoration: line-through; }
+.os-list-ts { font-size: 10px; color: #76746E; margin-top: 4px; }
+.os-tag-pill { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-right: 6px; vertical-align: middle; }
+.os-tag-pill.sms { background: rgba(125,211,252,0.14); color: #7DD3FC; }
+.os-tag-pill.pricing { background: rgba(107,227,164,0.14); color: #6BE3A4; }
+.os-tag-pill.ai { background: rgba(183,148,244,0.14); color: #b794f4; }
+.os-tag-pill.growth { background: rgba(212,175,55,0.14); color: #d4af37; }
+.os-tag-pill.competitor { background: rgba(255,107,107,0.14); color: #FF6B6B; }
+.os-tag-pill.lesson { background: rgba(242,192,99,0.14); color: #F2C063; }
+.os-tag-pill.personal { background: rgba(212,165,116,0.14); color: #d4a574; }
+.os-tag-pill.untagged { background: #14141a; color: #76746E; }
+
+/* ===== JOURNAL ===== */
+.os-jr-prompt { font-size: 12px; color: #d4af37; font-style: italic; margin-bottom: 10px; }
+.os-jr-area { width: 100%; min-height: 120px; background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; color: #FAFAFA; padding: 12px; font-size: 14px; font-family: inherit; line-height: 1.6; outline: none; resize: vertical; }
+.os-jr-area:focus { border-color: #d4af37; }
+
+/* ===== RITUAL VARIANTS (reset, shutdown) ===== */
+.os-card.reset .os-card-head h2 { color: #7DD3FC; }
+.os-card.reset { border-color: rgba(125,211,252,0.15); }
+.os-card.reset .os-ritual-item input { accent-color: #7DD3FC; }
+.os-card.shutdown .os-card-head h2 { color: #b794f4; }
+.os-card.shutdown { border-color: rgba(183,148,244,0.15); }
+.os-card.shutdown .os-ritual-item input { accent-color: #b794f4; }
 `;
 
   // -------- INJECT CSS ONCE --------
@@ -760,6 +962,764 @@
         if (!state.nonZero[k]) state.nonZero[k] = {};
         state.nonZero[k][row.dataset.nz] = e.target.checked;
         save(); renderAll();
+      });
+    });
+  };
+
+  // ===== THREE PRIORITIES =====
+  sections['three-priorities'] = function (root) {
+    const k = todayKey();
+    const p = state.priorities[k] || { texts: ['','',''], done: [false,false,false] };
+    root.className = 'os-card';
+    root.dataset.section = 'three-priorities';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Three Priorities</h2><div class="os-card-sub">Lock these before noon</div></div>
+      <div class="os-prio">
+        ${[0,1,2].map(i => `
+          <div class="os-prio-row ${p.done[i] ? 'done' : ''}" data-prio="${i}">
+            <span class="os-prio-num">${i+1}</span>
+            <input type="text" class="os-prio-text" placeholder="Priority ${i+1}" value="${escapeHtml(p.texts[i]||'')}" />
+            <input type="checkbox" class="os-check os-prio-check" ${p.done[i] ? 'checked' : ''} />
+          </div>
+        `).join('')}
+      </div>
+    `;
+    root.querySelectorAll('[data-prio]').forEach(row => {
+      const i = +row.dataset.prio;
+      row.querySelector('.os-prio-text').addEventListener('input', e => {
+        if (!state.priorities[k]) state.priorities[k] = { texts: ['','',''], done: [false,false,false] };
+        state.priorities[k].texts[i] = e.target.value; save();
+      });
+      row.querySelector('.os-prio-check').addEventListener('change', e => {
+        if (!state.priorities[k]) state.priorities[k] = { texts: ['','',''], done: [false,false,false] };
+        state.priorities[k].done[i] = e.target.checked;
+        row.classList.toggle('done', e.target.checked); save();
+      });
+    });
+  };
+
+  // ===== WEEK PRIORITIES (for Goals page) =====
+  sections['week-priorities'] = function (root) {
+    const w = isoWeek();
+    const p = state.weekPriorities && state.weekPriorities[w] ? state.weekPriorities[w] : ['','',''];
+    if (!state.weekPriorities) state.weekPriorities = {};
+    root.className = 'os-card';
+    root.dataset.section = 'week-priorities';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>This Week — 3 Priorities</h2><div class="os-card-sub">Set Sunday CEO meeting</div></div>
+      <div class="os-prio">
+        ${[0,1,2].map(i => `
+          <div class="os-prio-row" data-wp="${i}">
+            <span class="os-prio-num">${i+1}</span>
+            <input type="text" class="os-prio-text" placeholder="Week priority ${i+1}" value="${escapeHtml(p[i]||'')}" />
+          </div>
+        `).join('')}
+      </div>
+    `;
+    root.querySelectorAll('[data-wp]').forEach(row => {
+      const i = +row.dataset.wp;
+      row.querySelector('.os-prio-text').addEventListener('input', e => {
+        if (!state.weekPriorities[w]) state.weekPriorities[w] = ['','',''];
+        state.weekPriorities[w][i] = e.target.value; save();
+      });
+    });
+  };
+
+  // ===== GOALS BY CATEGORY =====
+  sections['goals-by-category'] = function (root) {
+    const cats = [
+      { id: 'faith', label: 'Faith', color: '#e6c068' },
+      { id: 'family', label: 'Family', color: '#7DD3FC' },
+      { id: 'health', label: 'Fitness · Health', color: '#6BE3A4' },
+      { id: 'biz', label: 'Finance · Business', color: '#d4af37' },
+      { id: 'life', label: 'Life', color: '#b794f4' }
+    ];
+    root.className = 'os-card';
+    root.dataset.section = 'goals-by-category';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>2026 Goals — by category</h2><div class="os-card-sub">Yearly direction · check off as you clear</div></div>
+      <div class="os-gbc">
+        ${cats.map(cat => {
+          const goals = (state.yearlyGoals || []).filter(g => g.cat === cat.id);
+          if (!goals.length) return '';
+          return `
+            <div class="os-gbc-section">
+              <div class="os-gbc-head" style="color:${cat.color};border-color:${cat.color}33;"><span class="os-gbc-dot" style="background:${cat.color};box-shadow:0 0 8px ${cat.color};"></span>${cat.label}</div>
+              <ul class="os-gbc-list">
+                ${goals.map(g => `
+                  <li class="os-gbc-item ${g.done ? 'done' : ''}" data-gid="${g.id}">
+                    <input type="checkbox" class="os-check" ${g.done ? 'checked' : ''} />
+                    <span class="os-gbc-text">${escapeHtml(g.text)}</span>
+                    <span class="os-gbc-dl">${escapeHtml(g.deadline)}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    root.querySelectorAll('[data-gid]').forEach(el => {
+      const id = el.dataset.gid;
+      el.querySelector('input').addEventListener('change', e => {
+        const g = state.yearlyGoals.find(x => x.id === id);
+        if (g) { g.done = e.target.checked; save(); renderAll(); }
+      });
+    });
+  };
+
+  // ===== MONTHLY GOALS (current month targets) =====
+  sections['monthly-goals'] = function (root) {
+    const m = monthKey();
+    const targets = state.monthlyTargets[m] || state.monthlyTargets['2026-05'] || {};
+    root.className = 'os-card';
+    root.dataset.section = 'monthly-goals';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>This Month — Targets</h2><div class="os-card-sub">${m} · edit to update</div></div>
+      <div class="os-mg-grid">
+        ${[
+          ['revenue','Revenue ($)','number',0],
+          ['clients','New clients','number',0],
+          ['onboarded','Onboarded','number',0],
+          ['gym','Gym sessions','number',0],
+          ['sleep','Sleep avg (hr)','number',0.5],
+          ['weight','Weight (kg)','number',0.1]
+        ].map(([k, l, t, st]) => `
+          <div class="os-mg-row">
+            <label>${l}</label>
+            <input type="${t}" ${st ? 'step="'+st+'"' : ''} data-mg="${k}" value="${targets[k] || ''}" placeholder="0" />
+          </div>
+        `).join('')}
+      </div>
+    `;
+    root.querySelectorAll('[data-mg]').forEach(inp => {
+      inp.addEventListener('input', e => {
+        if (!state.monthlyTargets[m]) state.monthlyTargets[m] = {};
+        state.monthlyTargets[m][inp.dataset.mg] = Number(e.target.value) || 0;
+        save();
+      });
+    });
+  };
+
+  // ===== WAR ROOM =====
+  const WR_LISTS = ['priorities','fires','opportunities'];
+  const WR_MAX = 3;
+  const WR_SINGULAR = { priorities: 'priority', fires: 'fire', opportunities: 'opportunity' };
+  sections['war-room'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'war-room';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>War Room</h2><div class="os-card-sub">Clarity under pressure · what ACTUALLY matters now</div></div>
+      <div class="os-wr-grid">
+        ${WR_LISTS.map(key => {
+          const arr = state.warRoom[key] || [];
+          const sing = WR_SINGULAR[key];
+          const atMax = arr.length >= WR_MAX;
+          return `
+            <div class="os-wr-panel ${key}">
+              <div class="os-wr-label">${key.toUpperCase()} <span class="os-wr-count">${arr.length}/${WR_MAX}</span></div>
+              <ul class="os-wr-list" data-wr-list="${key}">
+                ${arr.map((item, i) => `<li class="os-wr-li"><span>${escapeHtml(item)}</span><button data-wr-rm="${key}:${i}">×</button></li>`).join('')}
+              </ul>
+              <input class="os-wr-add" data-wr-add="${key}" placeholder="${atMax ? 'MAX ' + WR_MAX + ' — kill one' : '+ ' + sing}" ${atMax ? 'disabled' : ''} />
+            </div>
+          `;
+        }).join('')}
+        <div class="os-wr-panel bottleneck">
+          <div class="os-wr-label">THE ONE BOTTLENECK</div>
+          <textarea class="os-wr-bottleneck" data-wr-bn placeholder="ONE thing. Not seven.">${escapeHtml(state.warRoom.bottleneck||'')}</textarea>
+        </div>
+      </div>
+    `;
+    root.querySelectorAll('[data-wr-rm]').forEach(b => b.addEventListener('click', () => {
+      const [key, idx] = b.dataset.wrRm.split(':');
+      state.warRoom[key].splice(+idx, 1); save(); renderAll();
+    }));
+    root.querySelectorAll('[data-wr-add]').forEach(inp => inp.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const key = inp.dataset.wrAdd;
+      const v = inp.value.trim();
+      if (!v) return;
+      if (!state.warRoom[key]) state.warRoom[key] = [];
+      if (state.warRoom[key].length >= WR_MAX) { inp.value = ''; return; }
+      state.warRoom[key].push(v); inp.value = ''; save(); renderAll();
+    }));
+    root.querySelector('[data-wr-bn]').addEventListener('input', e => {
+      state.warRoom.bottleneck = e.target.value; save();
+    });
+  };
+
+  // ===== LEVELS =====
+  sections['levels'] = function (root) {
+    const cur = state.levels.current;
+    const def = state.levels.defs.find(d => d.id === cur);
+    const next = state.levels.defs.find(d => d.id === cur + 1);
+    if (!state.levels.checks[cur]) state.levels.checks[cur] = def.criteria.map(() => false);
+    const checks = state.levels.checks[cur];
+    const allDone = checks.every(Boolean);
+    root.className = 'os-card';
+    root.dataset.section = 'levels';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Levels</h2><div class="os-card-sub">Objective progression · proof not vibes</div></div>
+      <div class="os-lv-current">
+        <div class="os-lv-badge">LEVEL ${cur}</div>
+        <div class="os-lv-name">${escapeHtml(def.name)}</div>
+      </div>
+      <div class="os-lv-bar">
+        ${state.levels.defs.map(d => `<div class="os-lv-seg ${d.id < cur ? 'done' : d.id === cur ? 'current' : ''}"></div>`).join('')}
+      </div>
+      <div class="os-lv-title">Criteria to clear this level</div>
+      <ul class="os-lv-list">
+        ${def.criteria.map((c, i) => `
+          <li class="${checks[i] ? 'done' : ''}" data-lv="${i}">
+            <input type="checkbox" class="os-check" ${checks[i] ? 'checked' : ''} />
+            <span>${escapeHtml(c)}</span>
+          </li>
+        `).join('')}
+      </ul>
+      ${allDone && next ? `<div class="os-lv-advance">All criteria met. Ready to level up?<br/><button data-lv-advance>Advance →</button></div>` : ''}
+      <div class="os-lv-next">Next: <strong>Level ${next ? next.id : '∞'} — ${next ? escapeHtml(next.name) : "You've built it"}</strong></div>
+      ${next ? `<ul class="os-lv-next-list">${next.criteria.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
+    `;
+    root.querySelectorAll('[data-lv]').forEach(li => {
+      li.querySelector('input').addEventListener('change', e => {
+        state.levels.checks[cur][+li.dataset.lv] = e.target.checked;
+        save(); renderAll();
+      });
+    });
+    const adv = root.querySelector('[data-lv-advance]');
+    if (adv) adv.addEventListener('click', () => {
+      if (state.levels.current < state.levels.defs.length) { state.levels.current++; save(); renderAll(); }
+    });
+  };
+
+  // ===== WEEKLY SCORE =====
+  const WS_F = ['faith','finance','fitness','family','focus'];
+  sections['weekly-score'] = function (root) {
+    const w = isoWeek();
+    const data = state.weeklyScore[w] || {};
+    let total = 0;
+    WS_F.forEach(k => { if (typeof data[k] === 'number') total += data[k]; });
+    root.className = 'os-card';
+    root.dataset.section = 'weekly-score';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Weekly Score</h2><div class="os-card-sub">/10 each · Sunday CEO meeting · ${w}</div></div>
+      <div class="os-ws-grid">
+        ${WS_F.map(k => `
+          <div class="os-ws-cell">
+            <label>${k.charAt(0).toUpperCase() + k.slice(1)}</label>
+            <div class="os-ws-input"><input type="number" min="0" max="10" data-ws="${k}" value="${data[k] ?? ''}" /><span>/10</span></div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="os-ws-total"><span>TOTAL</span><span class="os-ws-total-v"><span>${total}</span> / 50</span></div>
+      <div class="os-ws-q">
+        <label>What one thing would raise next week's score the most?</label>
+        <textarea data-ws="lever" placeholder="One thing. Highest-leverage move.">${escapeHtml(data.lever || '')}</textarea>
+      </div>
+    `;
+    root.querySelectorAll('[data-ws]').forEach(inp => {
+      inp.addEventListener('input', e => {
+        if (!state.weeklyScore[w]) state.weeklyScore[w] = {};
+        const k = inp.dataset.ws;
+        if (WS_F.includes(k)) state.weeklyScore[w][k] = e.target.value === '' ? null : Math.max(0, Math.min(10, Number(e.target.value)));
+        else state.weeklyScore[w][k] = e.target.value;
+        save();
+        // Update total only (avoid re-render which loses focus on textarea)
+        let t = 0; WS_F.forEach(kk => { const v = state.weeklyScore[w][kk]; if (typeof v === 'number') t += v; });
+        root.querySelector('.os-ws-total-v span').textContent = t;
+      });
+    });
+  };
+
+  // ===== WEEK NUMBERS (input) =====
+  sections['week-numbers'] = function (root) {
+    const w = isoWeek();
+    const m = state.weeklyMetrics[w] || {};
+    root.className = 'os-card';
+    root.dataset.section = 'week-numbers';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>This Week — Numbers</h2><div class="os-card-sub">${w}</div></div>
+      <div class="os-wn-grid">
+        ${[
+          ['revenue','Revenue ($)','number',0],
+          ['clients','New Clients','number',0],
+          ['onboarded','Onboarded','number',0],
+          ['cancels','Cancellations','number',0],
+          ['gym','Gym Sessions','number',0],
+          ['sleep','Sleep Avg (hr)','number',0.5],
+          ['fajrweek','Fajr (/7)','number',0],
+          ['weight','Weight (kg)','number',0.1]
+        ].map(([k, l, t, st]) => `
+          <div class="os-wn-row">
+            <label>${l}</label>
+            <input type="${t}" ${st ? 'step="'+st+'"' : ''} data-wn="${k}" value="${m[k] ?? ''}" placeholder="0" />
+          </div>
+        `).join('')}
+      </div>
+    `;
+    root.querySelectorAll('[data-wn]').forEach(inp => {
+      inp.addEventListener('input', e => {
+        if (!state.weeklyMetrics[w]) state.weeklyMetrics[w] = {};
+        state.weeklyMetrics[w][inp.dataset.wn] = e.target.value === '' ? null : Number(e.target.value);
+        save(); renderAll();
+      });
+    });
+  };
+
+  // ===== KPI DASHBOARD =====
+  sections['kpi-dashboard'] = function (root) {
+    const m = monthKey();
+    const targets = state.monthlyTargets[m] || state.monthlyTargets['2026-05'] || {};
+    const agg = { revenue: 0, clients: 0, onboarded: 0, gym: 0, fajrweek: 0 };
+    let sleepSum = 0, sleepCount = 0, weightLatest = 0;
+    Object.entries(state.weeklyMetrics).forEach(([wk, vals]) => {
+      Object.entries(vals || {}).forEach(([k, v]) => {
+        if (typeof v !== 'number') return;
+        if (agg[k] !== undefined) agg[k] += v;
+        if (k === 'sleep') { sleepSum += v; sleepCount++; }
+        if (k === 'weight') weightLatest = v;
+      });
+    });
+    const sleepAvg = sleepCount ? (sleepSum / sleepCount) : 0;
+    const tw = state.weeklyMetrics[isoWeek()] || {};
+    const lwd = new Date(); lwd.setDate(lwd.getDate() - 7);
+    const lw = state.weeklyMetrics[isoWeekOf(lwd)] || {};
+    function delta(k) {
+      const a = typeof tw[k] === 'number' ? tw[k] : null;
+      const b = typeof lw[k] === 'number' ? lw[k] : null;
+      if (a === null && b === null) return null;
+      if (a === null) return { txt: 'last wk: ' + b, cls: '' };
+      if (b === null) return { txt: 'this wk: ' + a, cls: 'up' };
+      const d = a - b;
+      const arr = d > 0 ? '▲' : d < 0 ? '▼' : '·';
+      return { txt: 'this wk ' + a + ' ' + arr + ' (last ' + b + ')', cls: d > 0 ? 'up' : d < 0 ? 'down' : '' };
+    }
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const d = new Date();
+    const rows = [
+      { label: 'Revenue', v: agg.revenue, t: targets.revenue, fmt: x => '$' + (x || 0).toLocaleString(), wk: 'revenue' },
+      { label: 'New Clients', v: agg.clients, t: targets.clients, fmt: x => x || 0, wk: 'clients' },
+      { label: 'Onboarded', v: agg.onboarded, t: targets.onboarded, fmt: x => x || 0, wk: 'onboarded' },
+      { label: 'Gym', v: agg.gym, t: targets.gym, fmt: x => x || 0, wk: 'gym' },
+      { label: 'Sleep avg', v: +sleepAvg.toFixed(1), t: targets.sleep || 8.5, fmt: x => x + 'h', wk: 'sleep' },
+      { label: 'Fajr / 7', v: agg.fajrweek, t: 28, fmt: x => x || 0, wk: 'fajrweek' },
+      { label: 'Weight', v: weightLatest, t: targets.weight || 70, fmt: x => x ? x + 'kg' : '—', wk: 'weight' }
+    ];
+    root.className = 'os-card';
+    root.dataset.section = 'kpi-dashboard';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>${monthNames[d.getMonth()]} ${d.getFullYear()} — KPI Dashboard</h2><div class="os-card-sub">Live · aggregated from weekly numbers</div></div>
+      <div class="os-kpi-list">
+        ${rows.map(r => {
+          const pct = r.t > 0 ? Math.min(100, Math.round((r.v / r.t) * 100)) : 0;
+          const cls = pct >= 100 ? 'green' : pct < 25 ? 'red' : '';
+          const dd = r.wk ? delta(r.wk) : null;
+          return `
+            <div class="os-kpi-row">
+              <div class="os-kpi-label">${r.label}</div>
+              <div class="os-kpi-bar"><div class="os-kpi-fill ${cls}" style="width:${pct}%"></div></div>
+              <div class="os-kpi-val">${r.fmt(r.v)} <span class="os-kpi-pct">${pct}%</span></div>
+              ${dd ? `<div class="os-kpi-delta ${dd.cls}">${dd.txt}</div>` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  };
+
+  // ===== DECISION LOG =====
+  const DL_ST = ['pending','executed','reviewed','failed'];
+  sections['decision-log'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'decision-log';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Decision Log</h2><button class="os-btn" data-dl-add>+ Decision</button></div>
+      <div class="os-card-sub" style="margin-bottom:10px;">Stop repeating mistakes</div>
+      <table class="os-dl-table">
+        <thead><tr><th>Date</th><th>Decision</th><th>Why</th><th>Expected</th><th>Review</th><th>Status</th><th></th></tr></thead>
+        <tbody>${
+          !state.decisions.length
+          ? '<tr><td colspan="7" class="os-empty">No decisions logged.</td></tr>'
+          : state.decisions.map(d => `
+            <tr data-dl-id="${d.id}">
+              <td><input type="date" data-f="date" value="${d.date||''}"/></td>
+              <td><textarea data-f="decision" placeholder="…">${escapeHtml(d.decision||'')}</textarea></td>
+              <td><textarea data-f="why" placeholder="…">${escapeHtml(d.why||'')}</textarea></td>
+              <td><textarea data-f="expected" placeholder="…">${escapeHtml(d.expected||'')}</textarea></td>
+              <td><input type="date" data-f="reviewDate" value="${d.reviewDate||''}"/></td>
+              <td><select data-f="status" data-status="${d.status||'pending'}">${DL_ST.map(s => `<option value="${s}" ${d.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+              <td><button class="os-btn-icon" data-dl-rm>×</button></td>
+            </tr>
+          `).join('')
+        }</tbody>
+      </table>
+    `;
+    root.querySelector('[data-dl-add]').addEventListener('click', () => {
+      const today = todayKey();
+      const review = new Date(); review.setDate(review.getDate() + 30);
+      state.decisions.unshift({ id: Date.now()+'-'+Math.random().toString(36).slice(2,7), date: today, decision: '', why: '', expected: '', reviewDate: dateKey(review), status: 'pending' });
+      save(); renderAll();
+    });
+    root.querySelectorAll('[data-dl-id]').forEach(tr => {
+      const id = tr.dataset.dlId;
+      const d = state.decisions.find(x => x.id === id);
+      tr.querySelectorAll('[data-f]').forEach(el => {
+        el.addEventListener('input', () => { d[el.dataset.f] = el.value; save(); });
+        el.addEventListener('change', () => { d[el.dataset.f] = el.value; if (el.dataset.f === 'status') el.dataset.status = el.value; save(); });
+      });
+      tr.querySelector('[data-dl-rm]').addEventListener('click', () => {
+        if (confirm('Delete this decision?')) { state.decisions = state.decisions.filter(x => x.id !== id); save(); renderAll(); }
+      });
+    });
+  };
+
+  // ===== DELEGATION MATRIX =====
+  const DM_ST = ['you-only','partial','fully-delegated','sopd'];
+  sections['delegation'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'delegation';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Delegation Matrix</h2><button class="os-btn" data-dm-add>+ Task</button></div>
+      <div class="os-card-sub" style="margin-bottom:10px;">Operator → Owner: every recurring task needs ≠ you</div>
+      <table class="os-dl-table">
+        <thead><tr><th>Recurring task</th><th>Current</th><th>Target</th><th>Status</th><th></th></tr></thead>
+        <tbody>${
+          !state.delegation.length
+          ? '<tr><td colspan="5" class="os-empty">No tasks logged. Add the recurring stuff only YOU currently do.</td></tr>'
+          : state.delegation.map(d => `
+            <tr data-dm-id="${d.id}">
+              <td><input data-f="task" value="${escapeHtml(d.task||'')}" placeholder="e.g. Daily campaign launch"/></td>
+              <td><input data-f="currentOwner" value="${escapeHtml(d.currentOwner||'')}" placeholder="You"/></td>
+              <td><input data-f="targetOwner" value="${escapeHtml(d.targetOwner||'')}" placeholder="VA / partner / AI"/></td>
+              <td><select data-f="status" data-status="${d.status||'you-only'}">${DM_ST.map(s => `<option value="${s}" ${d.status===s?'selected':''}>${s.replace('-',' ')}</option>`).join('')}</select></td>
+              <td><button class="os-btn-icon" data-dm-rm>×</button></td>
+            </tr>
+          `).join('')
+        }</tbody>
+      </table>
+    `;
+    root.querySelector('[data-dm-add]').addEventListener('click', () => {
+      state.delegation.push({ id: Date.now()+'', task: '', currentOwner: 'You', targetOwner: '', status: 'you-only' });
+      save(); renderAll();
+    });
+    root.querySelectorAll('[data-dm-id]').forEach(tr => {
+      const id = tr.dataset.dmId;
+      const d = state.delegation.find(x => x.id === id);
+      tr.querySelectorAll('[data-f]').forEach(el => {
+        el.addEventListener('input', () => { d[el.dataset.f] = el.value; save(); });
+        el.addEventListener('change', () => { d[el.dataset.f] = el.value; if (el.dataset.f === 'status') el.dataset.status = el.value; save(); });
+      });
+      tr.querySelector('[data-dm-rm]').addEventListener('click', () => {
+        if (confirm('Delete this task?')) { state.delegation = state.delegation.filter(x => x.id !== id); save(); renderAll(); }
+      });
+    });
+  };
+
+  // ===== SYSTEM HEALTH =====
+  sections['system-health'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'system-health';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>System Health</h2><div class="os-card-sub">Fix before stress</div></div>
+      <ul class="os-sh-list">${
+        !state.systems.length
+        ? '<li class="os-empty">No broken systems logged. Look harder.</li>'
+        : state.systems.map(s => `
+          <li class="os-sh-item ${s.status||'risky'}" data-sh-id="${s.id}">
+            <span class="os-sh-text">${escapeHtml(s.name)}</span>
+            <select><option value="breaking" ${s.status==='breaking'?'selected':''}>Breaking</option><option value="risky" ${s.status==='risky'?'selected':''}>Risky</option><option value="fixed" ${s.status==='fixed'?'selected':''}>Fixed</option></select>
+            <button class="os-btn-icon" data-sh-rm>×</button>
+          </li>
+        `).join('')
+      }</ul>
+      <div class="os-sh-add"><input type="text" data-sh-input placeholder="Which system is breaking…"/><button class="os-btn" data-sh-add>Add</button></div>
+    `;
+    root.querySelectorAll('[data-sh-id]').forEach(li => {
+      const id = li.dataset.shId;
+      const s = state.systems.find(x => x.id === id);
+      li.querySelector('select').addEventListener('change', e => { s.status = e.target.value; save(); renderAll(); });
+      li.querySelector('[data-sh-rm]').addEventListener('click', () => { state.systems = state.systems.filter(x => x.id !== id); save(); renderAll(); });
+    });
+    const addBtn = root.querySelector('[data-sh-add]');
+    const addInp = root.querySelector('[data-sh-input]');
+    function doAdd() {
+      const v = addInp.value.trim();
+      if (!v) return;
+      state.systems.push({ id: Date.now()+'', name: v, status: 'risky' });
+      addInp.value = '';
+      save(); renderAll();
+    }
+    addBtn.addEventListener('click', doAdd);
+    addInp.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+  };
+
+  // ===== HEATMAP =====
+  sections['heatmap'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'heatmap';
+    function dens(k) {
+      const c = state.dailyChecks[k] || {};
+      let n = 0;
+      ['fajr','gym','zipcodes','aileads','loop','win'].forEach(key => { if (c[key]) n++; });
+      if (state.bigDomino[k]) n++;
+      return n;
+    }
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayK = dateKey(today);
+    let cellsHtml = '';
+    for (let i = 59; i >= 0; i--) {
+      const d = new Date(today); d.setDate(today.getDate() - i);
+      const k = dateKey(d);
+      const v = dens(k);
+      const level = v === 0 ? '' : v <= 2 ? 'l1' : v <= 4 ? 'l2' : v <= 5 ? 'l3' : 'l4';
+      cellsHtml += `<div class="os-heat-cell ${level} ${k === todayK ? 'today' : ''}" title="${k} · ${v}/7"></div>`;
+    }
+    root.innerHTML = `
+      <div class="os-card-head"><h2>60-Day Activity</h2><div class="os-card-sub">Each cell = day · color = checks completed</div></div>
+      <div class="os-heat-grid">${cellsHtml}</div>
+      <div class="os-heat-legend">less<span class="os-heat-chip" style="background:#14141a;"></span><span class="os-heat-chip" style="background:rgba(212,175,55,0.15);"></span><span class="os-heat-chip" style="background:rgba(212,175,55,0.30);"></span><span class="os-heat-chip" style="background:rgba(212,175,55,0.55);"></span><span class="os-heat-chip" style="background:linear-gradient(135deg,#b8941f,#e6c068);"></span>more</div>
+    `;
+  };
+
+  // ===== CAPTURE (Second Brain) =====
+  const TAGS = ['sms','pricing','ai','growth','competitor','lesson','personal'];
+  sections['capture'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'capture';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Quick Capture · Second Brain</h2><div class="os-card-sub">Tag · search · find later</div></div>
+      <div class="os-cap-bar">
+        <select data-cap-tag class="os-tag-sel">
+          <option value="untagged">Untagged</option>
+          ${TAGS.map(t => `<option value="${t}">${t.charAt(0).toUpperCase()+t.slice(1).replace('sms','SMS angle').replace('ai','AI tools').replace('lesson','Business lesson')}</option>`).join('')}
+        </select>
+        <textarea data-cap-input rows="2" placeholder="Drop any thought, idea, todo…"></textarea>
+        <button class="os-btn" data-cap-add>Add</button>
+      </div>
+      <div class="os-cap-bar">
+        <input type="text" data-cap-search class="os-tag-sel" style="flex:1;" placeholder="Search entries…"/>
+        <select data-cap-filter class="os-tag-sel">
+          <option value="all">All tags</option>
+          ${TAGS.map(t => `<option value="${t}">${t}</option>`).join('')}
+          <option value="untagged">untagged</option>
+        </select>
+      </div>
+      <div data-cap-list style="margin-top:10px;"></div>
+    `;
+    function rerenderList() {
+      const filter = root.querySelector('[data-cap-filter]').value;
+      const search = (root.querySelector('[data-cap-search]').value || '').toLowerCase().trim();
+      let items = state.capture.slice().reverse();
+      if (filter !== 'all') items = items.filter(i => (i.tag || 'untagged') === filter);
+      if (search) items = items.filter(i => (i.text || '').toLowerCase().includes(search));
+      const list = root.querySelector('[data-cap-list]');
+      list.innerHTML = items.length
+        ? items.map(it => `
+          <div class="os-list-item ${it.done?'done':''}" data-cap-id="${it.id}">
+            <input type="checkbox" class="os-check" ${it.done?'checked':''}/>
+            <div style="flex:1;">
+              <div><span class="os-tag-pill ${it.tag||'untagged'}">${it.tag||'untagged'}</span>${escapeHtml(it.text)}</div>
+              <div class="os-list-ts">${new Date(it.ts).toLocaleString()}</div>
+            </div>
+            <button class="os-btn-icon" data-cap-rm>×</button>
+          </div>
+        `).join('')
+        : '<div class="os-empty">No entries.</div>';
+      list.querySelectorAll('[data-cap-id]').forEach(div => {
+        const id = div.dataset.capId;
+        const it = state.capture.find(x => x.id === id);
+        div.querySelector('input').addEventListener('change', e => { it.done = e.target.checked; save(); rerenderList(); });
+        div.querySelector('[data-cap-rm]').addEventListener('click', () => { state.capture = state.capture.filter(x => x.id !== id); save(); rerenderList(); });
+      });
+    }
+    root.querySelector('[data-cap-add]').addEventListener('click', () => {
+      const txt = root.querySelector('[data-cap-input]').value.trim();
+      if (!txt) return;
+      const tag = root.querySelector('[data-cap-tag]').value;
+      state.capture.push({ id: Date.now()+'', text: txt, ts: Date.now(), done: false, tag });
+      root.querySelector('[data-cap-input]').value = '';
+      save(); rerenderList();
+    });
+    root.querySelector('[data-cap-input]').addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') root.querySelector('[data-cap-add]').click();
+    });
+    root.querySelector('[data-cap-filter]').addEventListener('change', rerenderList);
+    root.querySelector('[data-cap-search]').addEventListener('input', rerenderList);
+    rerenderList();
+  };
+
+  // ===== OPEN LOOPS =====
+  sections['loops'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'loops';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Open Loops</h2><div class="os-card-sub">When tired, close one — don't rest</div></div>
+      <div class="os-cap-bar">
+        <input type="text" data-lp-input placeholder="What have you been putting off…"/>
+        <button class="os-btn" data-lp-add>Add</button>
+      </div>
+      <div data-lp-list></div>
+    `;
+    function rerender() {
+      const list = root.querySelector('[data-lp-list]');
+      list.innerHTML = state.loops.length
+        ? state.loops.slice().reverse().map(it => `
+          <div class="os-list-item ${it.done?'done':''}" data-lp-id="${it.id}">
+            <input type="checkbox" class="os-check" ${it.done?'checked':''}/>
+            <div style="flex:1;">
+              <div>${escapeHtml(it.text)}</div>
+              <div class="os-list-ts">${new Date(it.ts).toLocaleDateString()}</div>
+            </div>
+            <button class="os-btn-icon" data-lp-rm>×</button>
+          </div>
+        `).join('')
+        : '<div class="os-empty">No open loops. Energy lives in closing them.</div>';
+      list.querySelectorAll('[data-lp-id]').forEach(div => {
+        const id = div.dataset.lpId;
+        const it = state.loops.find(x => x.id === id);
+        div.querySelector('input').addEventListener('change', e => { it.done = e.target.checked; save(); rerender(); });
+        div.querySelector('[data-lp-rm]').addEventListener('click', () => { state.loops = state.loops.filter(x => x.id !== id); save(); rerender(); });
+      });
+    }
+    root.querySelector('[data-lp-add]').addEventListener('click', () => {
+      const txt = root.querySelector('[data-lp-input]').value.trim();
+      if (!txt) return;
+      state.loops.push({ id: Date.now()+'', text: txt, ts: Date.now(), done: false });
+      root.querySelector('[data-lp-input]').value = '';
+      save(); rerender();
+    });
+    root.querySelector('[data-lp-input]').addEventListener('keydown', e => { if (e.key === 'Enter') root.querySelector('[data-lp-add]').click(); });
+    rerender();
+  };
+
+  // ===== CRM =====
+  const CRM_ST = ['lead','talking','signed','onboarding','live','paused','churned'];
+  sections['crm'] = function (root) {
+    root.className = 'os-card';
+    root.dataset.section = 'crm';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Tree Service Clients · CRM</h2><button class="os-btn" data-crm-add>+ Add Client</button></div>
+      <div class="os-card-sub" style="margin-bottom:10px;">lead → talking → signed → onboarding → live</div>
+      <table class="os-dl-table">
+        <thead><tr><th>Company</th><th>Status</th><th>$/mo</th><th>Notes</th><th></th></tr></thead>
+        <tbody>${
+          !state.clients.length
+          ? '<tr><td colspan="5" class="os-empty">No clients yet.</td></tr>'
+          : state.clients.map(c => `
+            <tr data-crm-id="${c.id}">
+              <td><input data-f="company" value="${escapeHtml(c.company||'')}" placeholder="Company name"/></td>
+              <td><select data-f="status" data-status="${c.status||'lead'}">${CRM_ST.map(s => `<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+              <td><input data-f="mrr" type="number" value="${c.mrr ?? ''}" placeholder="0"/></td>
+              <td><input data-f="notes" value="${escapeHtml(c.notes||'')}" placeholder="…"/></td>
+              <td><button class="os-btn-icon" data-crm-rm>×</button></td>
+            </tr>
+          `).join('')
+        }</tbody>
+      </table>
+    `;
+    root.querySelector('[data-crm-add]').addEventListener('click', () => {
+      state.clients.push({ id: Date.now()+'-'+Math.random().toString(36).slice(2,7), company: '', status: 'lead', mrr: null, notes: '' });
+      save(); renderAll();
+    });
+    root.querySelectorAll('[data-crm-id]').forEach(tr => {
+      const id = tr.dataset.crmId;
+      const c = state.clients.find(x => x.id === id);
+      tr.querySelectorAll('[data-f]').forEach(el => {
+        el.addEventListener('input', () => { c[el.dataset.f] = el.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value; save(); });
+        el.addEventListener('change', () => { c[el.dataset.f] = el.value; if (el.dataset.f === 'status') el.dataset.status = el.value; save(); });
+      });
+      tr.querySelector('[data-crm-rm]').addEventListener('click', () => {
+        if (confirm('Delete ' + (c.company || 'this client') + '?')) { state.clients = state.clients.filter(x => x.id !== id); save(); renderAll(); }
+      });
+    });
+  };
+
+  // ===== JOURNAL =====
+  const journalPrompts = [
+    "What did you do well today? What didn't work — and why?",
+    "Where did you act as the new identity? Where did you revert?",
+    "What's draining you right now? Decode the emotion.",
+    "What's the one thing you've been avoiding? Why?",
+    "How did today move the needle on May's goals?",
+    "What's one experiment you could run tomorrow?",
+    "If today were 20%, did you give 20%?"
+  ];
+  sections['journal'] = function (root) {
+    const k = todayKey();
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const prompt = journalPrompts[dayOfYear % journalPrompts.length];
+    root.className = 'os-card';
+    root.dataset.section = 'journal';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Self-Analysis</h2><div class="os-card-sub">Evening · be honest, not flattering</div></div>
+      <div class="os-jr-prompt">"${escapeHtml(prompt)}"</div>
+      <textarea class="os-jr-area" data-jr placeholder="Be specific. The point isn't to feel good — it's to see clearly.">${escapeHtml(state.journal[k] || '')}</textarea>
+    `;
+    root.querySelector('[data-jr]').addEventListener('input', e => { state.journal[todayKey()] = e.target.value; save(); });
+  };
+
+  // ===== RESET BLOCK =====
+  const resetItems = [
+    { key: 'shower', label: 'Shower' },
+    { key: 'meal', label: 'Meal' },
+    { key: 'walk', label: 'Quick walk' },
+    { key: 'noPhone', label: 'No phone 20m' }
+  ];
+  sections['reset-block'] = function (root) {
+    const k = todayKey();
+    const data = state.resetBlock[k] || {};
+    root.className = 'os-card reset';
+    root.dataset.section = 'reset-block';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Reset Block</h2><div class="os-card-sub">16:45 — 17:30 · before US work</div></div>
+      <ul class="os-ritual-list">
+        ${resetItems.map(it => `
+          <li class="os-ritual-item ${data[it.key]?'on':''}" data-rb="${it.key}">
+            <input type="checkbox" class="os-check" ${data[it.key]?'checked':''}/>
+            <span class="os-ri-text">${it.label}</span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+    root.querySelectorAll('[data-rb]').forEach(li => {
+      li.querySelector('input').addEventListener('change', e => {
+        if (!state.resetBlock[k]) state.resetBlock[k] = {};
+        state.resetBlock[k][li.dataset.rb] = e.target.checked;
+        li.classList.toggle('on', e.target.checked); save();
+      });
+    });
+  };
+
+  // ===== NIGHT SHUTDOWN =====
+  const shutdownItems = [
+    { key: 'inbox', label: 'Inbox cleared' },
+    { key: 'tomorrow', label: 'Tomorrow planned' },
+    { key: 'water', label: 'Final water' },
+    { key: 'skincare', label: 'Skincare' },
+    { key: 'clothes', label: 'Clothes laid out' }
+  ];
+  sections['night-shutdown'] = function (root) {
+    const k = todayKey();
+    const data = state.nightShutdown[k] || {};
+    root.className = 'os-card shutdown';
+    root.dataset.section = 'night-shutdown';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Night Shutdown</h2><div class="os-card-sub">23:30 — 01:30 · sleep quality built before sleep</div></div>
+      <ul class="os-ritual-list">
+        ${shutdownItems.map(it => `
+          <li class="os-ritual-item ${data[it.key]?'on':''}" data-ns="${it.key}">
+            <input type="checkbox" class="os-check" ${data[it.key]?'checked':''}/>
+            <span class="os-ri-text">${it.label}</span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+    root.querySelectorAll('[data-ns]').forEach(li => {
+      li.querySelector('input').addEventListener('change', e => {
+        if (!state.nightShutdown[k]) state.nightShutdown[k] = {};
+        state.nightShutdown[k][li.dataset.ns] = e.target.checked;
+        li.classList.toggle('on', e.target.checked); save();
       });
     });
   };

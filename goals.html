@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050506">
-<title>Strategy</title>
+<title>Goals</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
@@ -12,8 +12,8 @@
 <style>
 html, body { margin: 0; padding: 0; background: #050506; color: #B8B6B0; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
 body { min-height: 100vh; padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(60px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(circle at 82% 14%, rgba(212,175,55,0.08), transparent 45%), radial-gradient(circle at 18% 90%, rgba(236,72,153,0.04), transparent 50%); filter: blur(40px); pointer-events: none; z-index: -2; }
-.page { max-width: 1100px; margin: 0 auto; }
+body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(circle at 82% 14%, rgba(212,175,55,0.10), transparent 45%), radial-gradient(circle at 18% 90%, rgba(125,211,252,0.04), transparent 50%); filter: blur(40px); pointer-events: none; z-index: -2; }
+.page { max-width: 900px; margin: 0 auto; }
 .dash-title { margin: 0 0 4px; font-size: 28px; font-weight: 700; letter-spacing: -0.025em; background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 .dash-sub { font-size: 12px; color: #76746E; margin-bottom: 18px; letter-spacing: 0.04em; }
 @media (max-width: 480px) { .dash-title { font-size: 22px; } }
@@ -21,18 +21,17 @@ body::before { content: ''; position: fixed; inset: 0; background: radial-gradie
 </head>
 <body>
 <div class="page">
-  <h1 class="dash-title">Strategy</h1>
-  <div class="dash-sub">Operator → Owner · decide · measure · level up</div>
+  <h1 class="dash-title">Goals</h1>
+  <div class="dash-sub">Yearly direction · monthly targets · weekly priorities</div>
 
-  <div data-os-section="war-room"></div>
-  <div data-os-section="levels"></div>
-  <div data-os-section="weekly-score"></div>
-  <div data-os-section="week-numbers"></div>
-  <div data-os-section="kpi-dashboard"></div>
-  <div data-os-section="heatmap"></div>
-  <div data-os-section="decision-log"></div>
-  <div data-os-section="delegation"></div>
-  <div data-os-section="system-health"></div>
+  <!-- Most actionable first: this week -->
+  <div data-os-section="week-priorities"></div>
+
+  <!-- This month's targets -->
+  <div data-os-section="monthly-goals"></div>
+
+  <!-- Yearly goals grouped by category -->
+  <div data-os-section="goals-by-category"></div>
 </div>
 </body>
 </html>

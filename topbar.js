@@ -160,18 +160,27 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   <a href="finance.html" class="topbar-finance-btn" id="topbarFinance" aria-label="Finance">
     <span class="topbar-finance-icon">📊</span>
   </a>
+  <a href="brain.html" class="topbar-finance-btn" id="topbarBrain" aria-label="Brain · capture · loops · CRM">
+    <span class="topbar-finance-icon">🧠</span>
+  </a>
 </header>`;
 
   const bottombarHtml = `
 <nav class="bottombar" id="bottombar" role="navigation" aria-label="Main tabs">
   <a href="index.html" class="bottombar-tab" data-page="main">
-    <span class="bottombar-tab-icon">🏠</span><span>Main</span>
+    <span class="bottombar-tab-icon">🏠</span><span>Today</span>
+  </a>
+  <a href="goals.html" class="bottombar-tab" data-page="goals">
+    <span class="bottombar-tab-icon">🎯</span><span>Goals</span>
   </a>
   <a href="health.html" class="bottombar-tab" data-page="health">
     <span class="bottombar-tab-icon">💊</span><span>Health</span>
   </a>
   <a href="gym.html" class="bottombar-tab" data-page="fitness">
     <span class="bottombar-tab-icon">💪</span><span>Fitness</span>
+  </a>
+  <a href="strategy.html" class="bottombar-tab" data-page="strategy">
+    <span class="bottombar-tab-icon">⚙️</span><span>Strategy</span>
   </a>
 </nav>`;
 
@@ -187,6 +196,8 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     const p = (window.location.pathname || '').toLowerCase();
     if (p.endsWith('health.html')) return 'health';
     if (p.endsWith('gym.html')) return 'fitness';
+    if (p.endsWith('goals.html')) return 'goals';
+    if (p.endsWith('strategy.html')) return 'strategy';
     return 'main';
   }
 
