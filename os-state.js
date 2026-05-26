@@ -81,6 +81,8 @@
 
     // Cross-cutting
     capture: [], loops: [], clients: [],
+    notes: [], // long-form notes: [{ id, title, content, ts, updated }]
+    monthlyRule: { '2026-05': 'NO EXCUSES — driving · fitness · business · life' },
     ui: { collapsed: {} }
   };
 
@@ -183,9 +185,12 @@
         return (v && (v.weight || v.kg || v.value)) || 0;
       }
     } catch (e) {}
-    // Fallback: weekly metric weight
-    const wk = state.weeklyMetrics[isoWeek()];
-    if (wk && typeof wk.weight === 'number') return wk.weight;
+    // Fallback: most recent week with weight in weeklyMetrics
+    const weeks = Object.keys(state.weeklyMetrics || {}).sort().reverse();
+    for (const wk of weeks) {
+      const v = state.weeklyMetrics[wk]?.weight;
+      if (typeof v === 'number' && v > 0) return v;
+    }
     return 0;
   }
 
@@ -550,6 +555,87 @@
 .os-card.shutdown .os-card-head h2 { color: #b794f4; }
 .os-card.shutdown { border-color: rgba(183,148,244,0.15); }
 .os-card.shutdown .os-ritual-item input { accent-color: #b794f4; }
+
+/* ===== PRINCIPLE OF THE DAY ===== */
+.os-principle { padding: 14px 18px; margin: 12px 0; background: linear-gradient(90deg, rgba(212,175,55,0.06), rgba(13,13,16,0.4)); border-left: 3px solid #d4af37; border-radius: 0 10px 10px 0; }
+.os-principle-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #d4af37; margin-bottom: 6px; }
+.os-principle-text { font-size: 15px; font-style: italic; color: #FAFAFA; line-height: 1.5; letter-spacing: -0.005em; }
+
+/* ===== MONTHLY RULE ===== */
+.os-rule-wrap { margin: 10px 0; }
+.os-rule-pill { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border: 1px solid rgba(212,175,55,0.4); background: rgba(212,175,55,0.08); border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #d4af37; }
+.os-rule-month { color: #e6c068; font-weight: 800; }
+.os-rule-sep { opacity: 0.5; }
+.os-rule-text { color: #FAFAFA; cursor: pointer; transition: color 0.15s; }
+.os-rule-text:hover { color: #e6c068; }
+
+/* ===== WAR ROOM SNAPSHOT ===== */
+.os-wrs { margin: 12px 0; }
+.os-wrs-empty { padding: 12px 14px; background: rgba(20,20,26,0.5); border: 1px dashed rgba(255,255,255,0.10); border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 12px; flex-wrap: wrap; }
+.os-wrs-empty-tag { color: #d4af37; font-weight: 700; letter-spacing: 0.14em; font-size: 10px; text-transform: uppercase; }
+.os-wrs-empty-text { color: #76746E; }
+.os-wrs-link, .os-wrs-link-block { color: #d4af37; text-decoration: none; font-weight: 600; }
+.os-wrs-link:hover { text-decoration: underline; }
+.os-wrs-link-block { display: block; padding: 14px 18px; background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(13,13,16,0.4)); border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; transition: all 0.15s; }
+.os-wrs-link-block:hover { border-color: #d4af37; box-shadow: 0 0 16px rgba(212,175,55,0.15); }
+.os-wrs-head { margin-bottom: 6px; }
+.os-wrs-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #d4af37; }
+.os-wrs-bn { font-size: 16px; font-weight: 600; color: #e6c068; line-height: 1.4; letter-spacing: -0.01em; margin-bottom: 8px; }
+.os-wrs-dim { color: #76746E; font-style: italic; }
+.os-wrs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+.os-wrs-col-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6BE3A4; margin-bottom: 4px; }
+.os-wrs-col-label.os-wrs-col-fire { color: #FF6B6B; }
+.os-wrs-col ul { margin: 0; padding-left: 16px; }
+.os-wrs-col li { font-size: 12px; color: #B8B6B0; padding: 2px 0; line-height: 1.4; }
+@media (max-width: 500px) { .os-wrs-grid { grid-template-columns: 1fr; } }
+
+/* ===== QUICK CAPTURE INLINE ===== */
+.os-qc { padding: 12px 14px; margin: 12px 0; background: rgba(20,20,26,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+.os-qc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.os-qc-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #76746E; }
+.os-qc-link { font-size: 10px; color: #d4af37; text-decoration: none; letter-spacing: 0.05em; }
+.os-qc-link:hover { text-decoration: underline; }
+.os-qc-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.os-qc-select { background: #14141a; border: 1px solid rgba(255,255,255,0.06); color: #FAFAFA; padding: 7px 8px; border-radius: 6px; font-size: 11px; font-family: inherit; cursor: pointer; outline: none; }
+.os-qc-input { flex: 1; min-width: 120px; background: #14141a; border: 1px solid rgba(255,255,255,0.06); color: #FAFAFA; padding: 7px 10px; border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; }
+.os-qc-input:focus { border-color: #d4af37; }
+.os-qc-status { font-size: 11px; color: #6BE3A4; opacity: 0; margin-top: 6px; transition: opacity 0.2s; height: 14px; }
+.os-qc-status.show { opacity: 1; }
+
+/* ===== NOTES ===== */
+.os-nt-search-wrap { margin-bottom: 10px; }
+.os-nt-search { width: 100%; background: #14141a; border: 1px solid rgba(255,255,255,0.06); color: #FAFAFA; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
+.os-nt-search:focus { border-color: #d4af37; }
+.os-nt-list { display: flex; flex-direction: column; gap: 6px; }
+.os-nt-card { background: rgba(20,20,26,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color 0.15s; }
+.os-nt-card:hover { border-color: rgba(212,175,55,0.3); }
+.os-nt-row { display: flex; align-items: center; gap: 10px; }
+.os-nt-title { flex: 1; background: transparent; border: none; color: #FAFAFA; font-size: 14px; font-weight: 600; outline: none; font-family: inherit; }
+.os-nt-title::placeholder { color: #76746E; }
+.os-nt-preview { font-size: 12px; color: #76746E; margin-top: 6px; line-height: 1.4; }
+.os-nt-content { width: 100%; min-height: 200px; background: #14141a; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: #FAFAFA; padding: 10px 12px; font-size: 13px; font-family: inherit; line-height: 1.6; outline: none; resize: vertical; margin-top: 10px; }
+.os-nt-content:focus { border-color: #d4af37; }
+.os-nt-meta { font-size: 10px; color: #76746E; margin-top: 8px; letter-spacing: 0.04em; }
+.os-nt-collapsed .os-nt-content { display: none; }
+.os-nt-collapsed .os-nt-meta { display: none; }
+.os-nt-card:not(.os-nt-collapsed) .os-nt-preview { display: none; }
+
+/* ===== WEIGHT SPARKLINE (in fitness-goals) ===== */
+.os-fg-spark-wrap { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+.os-fg-spark-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #76746E; margin-bottom: 6px; }
+.os-fg-spark { height: 36px; color: #d4af37; opacity: 0.85; }
+.os-fg-spark svg { display: block; width: 100%; height: 100%; }
+
+/* ===== KPI REVENUE TREND ===== */
+.os-kpi-trend { background: rgba(20,20,26,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.os-kpi-trend-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.os-kpi-trend-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #76746E; }
+.os-kpi-trend-arrow { font-size: 11px; font-weight: 700; }
+.os-kpi-trend-arrow.up { color: #6BE3A4; }
+.os-kpi-trend-arrow.down { color: #FF6B6B; }
+.os-kpi-trend-arrow.flat { color: #76746E; }
+.os-kpi-trend-chart { height: 40px; color: #d4af37; }
+.os-kpi-trend-chart svg { display: block; width: 100%; height: 100%; }
 `;
 
   // -------- INJECT CSS ONCE --------
@@ -563,6 +649,25 @@
 
   // -------- SECTION RENDERERS --------
   const sections = {};
+
+  // ===== Auto-link goals: runs at load + after every state change =====
+  function reconcileLinkedGoals() {
+    // Mom's house paid >= target → yearly goal done
+    const mh = state.momsHouse;
+    if (mh && mh.target > 0 && mh.paid >= mh.target) {
+      const g = state.yearlyGoals.find(x => x.id === 'g5');
+      if (g && !g.done) { g.done = true; return true; }
+    }
+    // Driving license — could auto-check by date passing May 14 if you mark it
+    // (No data signal yet — manual check stays)
+    // 70kg weight → goal done if latest weight >= 70
+    const w = latestWeight();
+    if (w >= 70) {
+      const g = state.yearlyGoals.find(x => x.id === 'g7');
+      if (g && !g.done) { g.done = true; return true; }
+    }
+    return false;
+  }
 
   // ===== MOM'S HOUSE =====
   sections['moms-house'] = function (root) {
@@ -659,7 +764,31 @@
           </div>
         `).join('')}
       </div>
+      <div class="os-fg-spark-wrap">
+        <div class="os-fg-spark-label">Weight · last 8 weeks</div>
+        <div class="os-fg-spark" data-fg-spark></div>
+      </div>
     `;
+    // Render weight sparkline from last 8 weeks of weeklyMetrics
+    const weights = [];
+    const ref = new Date();
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(ref); d.setDate(ref.getDate() - i * 7);
+      const w = isoWeekOf(d);
+      const v = state.weeklyMetrics[w]?.weight;
+      weights.push(typeof v === 'number' ? v : null);
+    }
+    const sparkEl = root.querySelector('[data-fg-spark]');
+    if (sparkEl) {
+      const validValues = weights.filter(v => v !== null);
+      if (!validValues.length && weightNow > 0) {
+        // Use current weight as single point
+        weights[weights.length - 1] = weightNow;
+      }
+      const max = Math.max(weightTarget, ...validValues, weightNow || 0) + 2;
+      const min = Math.min(...validValues, weightNow || max) - 2;
+      renderRangeSparkline(sparkEl, weights, min, max);
+    }
     root.querySelector('[data-fg="weightTarget"]').addEventListener('input', e => {
       state.fitnessGoals.weightTarget = Number(e.target.value) || 70; save(); renderAll();
     });
@@ -802,6 +931,29 @@
     }
     return vals;
   }
+  // Sparkline that supports custom min (for weight/etc. where 0 isn't baseline)
+  function renderRangeSparkline(container, values, min, max) {
+    const w = 100, h = 36, pad = 3;
+    const range = (max - min) || 1;
+    const step = (w - pad * 2) / (values.length - 1);
+    let path = '', started = false;
+    values.forEach((v, i) => {
+      if (v === null) return;
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      path += (started ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+      started = true;
+    });
+    const dots = values.map((v, i) => {
+      if (v === null) return '';
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2" fill="currentColor" />`;
+    }).join('');
+    if (!started) { container.innerHTML = `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><text x="${w/2}" y="${h/2+3}" text-anchor="middle" fill="currentColor" font-size="10" opacity="0.5">no data yet</text></svg>`; return; }
+    container.innerHTML = `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />${dots}</svg>`;
+  }
+
   function renderSparkline(container, values, max) {
     const w = 100, h = 22, pad = 2;
     const step = (w - pad * 2) / (values.length - 1);
@@ -1306,10 +1458,35 @@
       { label: 'Fajr / 7', v: agg.fajrweek, t: 28, fmt: x => x || 0, wk: 'fajrweek' },
       { label: 'Weight', v: weightLatest, t: targets.weight || 70, fmt: x => x ? x + 'kg' : '—', wk: 'weight' }
     ];
+    // Build revenue trend from last 8 weeks
+    const revVals = [];
+    const ref2 = new Date();
+    for (let i = 7; i >= 0; i--) {
+      const dd = new Date(ref2); dd.setDate(ref2.getDate() - i * 7);
+      const wk = isoWeekOf(dd);
+      const v = state.weeklyMetrics[wk]?.revenue;
+      revVals.push(typeof v === 'number' ? v : null);
+    }
+    const revValid = revVals.filter(v => v !== null);
+    let trendArrow = '·', trendCls = 'flat';
+    if (revValid.length >= 2) {
+      const half = Math.floor(revValid.length / 2);
+      const earlyAvg = revValid.slice(0, half).reduce((s, x) => s + x, 0) / half;
+      const lateAvg = revValid.slice(half).reduce((s, x) => s + x, 0) / (revValid.length - half);
+      if (lateAvg > earlyAvg * 1.05) { trendArrow = '▲'; trendCls = 'up'; }
+      else if (lateAvg < earlyAvg * 0.95) { trendArrow = '▼'; trendCls = 'down'; }
+    }
     root.className = 'os-card';
     root.dataset.section = 'kpi-dashboard';
     root.innerHTML = `
       <div class="os-card-head"><h2>${monthNames[d.getMonth()]} ${d.getFullYear()} — KPI Dashboard</h2><div class="os-card-sub">Live · aggregated from weekly numbers</div></div>
+      <div class="os-kpi-trend">
+        <div class="os-kpi-trend-head">
+          <span class="os-kpi-trend-label">Revenue · last 8 weeks</span>
+          <span class="os-kpi-trend-arrow ${trendCls}">${trendArrow} ${revValid.length >= 2 ? 'trend' : 'need 2+ weeks'}</span>
+        </div>
+        <div class="os-kpi-trend-chart" data-kpi-trend></div>
+      </div>
       <div class="os-kpi-list">
         ${rows.map(r => {
           const pct = r.t > 0 ? Math.min(100, Math.round((r.v / r.t) * 100)) : 0;
@@ -1326,6 +1503,13 @@
         }).join('')}
       </div>
     `;
+    // Render revenue trend sparkline
+    const trendEl = root.querySelector('[data-kpi-trend]');
+    if (trendEl) {
+      const revMax = Math.max(...revValid, targets.revenue || 60000);
+      const revMin = Math.max(0, Math.min(...revValid) - revMax * 0.1);
+      renderRangeSparkline(trendEl, revVals, revMin, revMax);
+    }
   };
 
   // ===== DECISION LOG =====
@@ -1724,6 +1908,215 @@
     });
   };
 
+  // ===== PRINCIPLE OF THE DAY =====
+  const principles = [
+    { law: "Parkinson's Law", text: "Work expands to fill the time you give it. Tighten the timebox." },
+    { law: "Reframe",          text: "You don't have to. You GET to." },
+    { law: "Microscopic promises", text: "Don't make big promises to yourself. Microscopic ones, kept." },
+    { law: "Non-Zero rule",    text: "Bare minimum is allowed when you're not feeling it. Zero is not." },
+    { law: "Open loops",       text: "When tired, close an open loop. Energy lives there — not in rest." },
+    { law: "Make it fun",      text: "How would this look if it was fun? Ask before any task." },
+    { law: "Details ≠ yours",  text: "The details are not your business. Do your work. Allah handles the rest." },
+    { law: "Decode emotions",  text: "Emotions are the old identity talking. Decode them, then act anyway." },
+    { law: "20% = 100%",       text: "20% effort on a 20% day is 100%. End every bad day on a deliberate win." },
+    { law: "Low friction",     text: "Low friction wins over high motivation. Build systems that survive bad days." }
+  ];
+  sections['principle-of-the-day'] = function (root) {
+    const d = new Date();
+    const dayOfYear = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    const p = principles[dayOfYear % principles.length];
+    root.className = 'os-principle';
+    root.dataset.section = 'principle-of-the-day';
+    root.innerHTML = `
+      <div class="os-principle-tag">PRINCIPLE OF THE DAY · ${escapeHtml(p.law)}</div>
+      <div class="os-principle-text">"${escapeHtml(p.text)}"</div>
+    `;
+  };
+
+  // ===== MONTHLY RULE PILL =====
+  sections['monthly-rule'] = function (root) {
+    const m = monthKey();
+    const rule = (state.monthlyRule && state.monthlyRule[m]) || (state.monthlyRule && state.monthlyRule['2026-05']) || 'NO EXCUSES';
+    const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const d = new Date();
+    root.className = 'os-rule-wrap';
+    root.dataset.section = 'monthly-rule';
+    root.innerHTML = `
+      <div class="os-rule-pill">
+        <span class="os-rule-month">${monthNames[d.getMonth()]} ${d.getFullYear()}</span>
+        <span class="os-rule-sep">·</span>
+        <span class="os-rule-text" data-rule-edit>${escapeHtml(rule)}</span>
+      </div>
+    `;
+    // Click to edit
+    const span = root.querySelector('[data-rule-edit]');
+    span.addEventListener('click', () => {
+      const nu = prompt('Set this month\'s rule:', rule);
+      if (nu === null) return;
+      if (!state.monthlyRule) state.monthlyRule = {};
+      state.monthlyRule[m] = nu.trim() || rule;
+      save(); renderAll();
+    });
+  };
+
+  // ===== WAR ROOM SNAPSHOT (read-only mini for Today) =====
+  sections['war-room-snapshot'] = function (root) {
+    const bn = state.warRoom.bottleneck || '';
+    const prios = state.warRoom.priorities || [];
+    const fires = state.warRoom.fires || [];
+    root.className = 'os-wrs';
+    root.dataset.section = 'war-room-snapshot';
+    if (!bn && !prios.length && !fires.length) {
+      root.innerHTML = `
+        <div class="os-wrs-empty">
+          <span class="os-wrs-empty-tag">WAR ROOM</span>
+          <span class="os-wrs-empty-text">No bottleneck set yet — </span>
+          <a href="strategy.html" class="os-wrs-link">go to Strategy →</a>
+        </div>
+      `;
+      return;
+    }
+    root.innerHTML = `
+      <a href="strategy.html" class="os-wrs-link-block">
+        <div class="os-wrs-head"><span class="os-wrs-tag">WAR ROOM · THE BOTTLENECK</span></div>
+        <div class="os-wrs-bn">${bn ? escapeHtml(bn) : '<span class="os-wrs-dim">(not set)</span>'}</div>
+        ${prios.length || fires.length ? `
+          <div class="os-wrs-grid">
+            ${prios.length ? `<div class="os-wrs-col"><div class="os-wrs-col-label">PRIORITIES</div><ul>${prios.slice(0,3).map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul></div>` : ''}
+            ${fires.length ? `<div class="os-wrs-col"><div class="os-wrs-col-label os-wrs-col-fire">FIRES</div><ul>${fires.slice(0,3).map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul></div>` : ''}
+          </div>
+        ` : ''}
+      </a>
+    `;
+  };
+
+  // ===== QUICK CAPTURE (inline mini for Today) =====
+  sections['quick-capture'] = function (root) {
+    root.className = 'os-qc';
+    root.dataset.section = 'quick-capture';
+    root.innerHTML = `
+      <div class="os-qc-head">
+        <span class="os-qc-tag">QUICK CAPTURE</span>
+        <a href="brain.html" class="os-qc-link">All in Brain →</a>
+      </div>
+      <div class="os-qc-row">
+        <select data-qc-tag class="os-qc-select">
+          <option value="untagged">Untagged</option>
+          <option value="sms">SMS angle</option>
+          <option value="pricing">Pricing</option>
+          <option value="ai">AI tools</option>
+          <option value="growth">Growth</option>
+          <option value="competitor">Competitor</option>
+          <option value="lesson">Lesson</option>
+          <option value="personal">Personal</option>
+        </select>
+        <input type="text" data-qc-input class="os-qc-input" placeholder="Drop a thought, idea, todo…" />
+        <button class="os-btn" data-qc-add>Add</button>
+      </div>
+      <div class="os-qc-status" data-qc-status></div>
+    `;
+    function add() {
+      const inp = root.querySelector('[data-qc-input]');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      const tag = root.querySelector('[data-qc-tag]').value;
+      state.capture.push({ id: Date.now()+'', text: txt, ts: Date.now(), done: false, tag });
+      inp.value = '';
+      save();
+      const status = root.querySelector('[data-qc-status]');
+      status.textContent = '✓ Captured';
+      status.classList.add('show');
+      setTimeout(() => status.classList.remove('show'), 1500);
+      // Re-render any visible capture renderers
+      renderAll();
+    }
+    root.querySelector('[data-qc-add]').addEventListener('click', add);
+    root.querySelector('[data-qc-input]').addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+  };
+
+  // ===== NOTES (long-form, on Brain page) =====
+  sections['notes'] = function (root) {
+    if (!Array.isArray(state.notes)) state.notes = [];
+    root.className = 'os-card';
+    root.dataset.section = 'notes';
+    root.innerHTML = `
+      <div class="os-card-head"><h2>Notes</h2><button class="os-btn" data-nt-add>+ New Note</button></div>
+      <div class="os-card-sub" style="margin-bottom:10px;">Long-form ideas · your second brain · search by title or content</div>
+      <div class="os-nt-search-wrap">
+        <input type="text" data-nt-search class="os-nt-search" placeholder="Search notes…" />
+      </div>
+      <div class="os-nt-list" data-nt-list></div>
+    `;
+    function rerender() {
+      const search = (root.querySelector('[data-nt-search]').value || '').toLowerCase().trim();
+      const list = root.querySelector('[data-nt-list]');
+      list.innerHTML = '';
+      let notes = state.notes.slice().sort((a, b) => (b.updated || b.ts) - (a.updated || a.ts));
+      if (search) notes = notes.filter(n => (n.title||'').toLowerCase().includes(search) || (n.content||'').toLowerCase().includes(search));
+      if (!notes.length) {
+        list.innerHTML = `<div class="os-empty">${search ? 'No notes match.' : 'No notes yet. Hit "+ New Note" to start your second brain.'}</div>`;
+        return;
+      }
+      notes.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'os-nt-item';
+        div.dataset.ntId = n.id;
+        const preview = (n.content || '').slice(0, 120).replace(/\n/g, ' ');
+        div.innerHTML = `
+          <div class="os-nt-card os-nt-collapsed">
+            <div class="os-nt-row">
+              <input type="text" class="os-nt-title" data-nt-f="title" value="${escapeHtml(n.title||'')}" placeholder="Title…" />
+              <button class="os-btn-icon" data-nt-rm>×</button>
+            </div>
+            <div class="os-nt-preview">${escapeHtml(preview)}${(n.content||'').length > 120 ? '…' : ''}</div>
+            <textarea class="os-nt-content" data-nt-f="content" placeholder="Write your note…">${escapeHtml(n.content||'')}</textarea>
+            <div class="os-nt-meta">${n.updated ? 'Updated ' + new Date(n.updated).toLocaleString() : 'Created ' + new Date(n.ts).toLocaleString()}</div>
+          </div>
+        `;
+        const card = div.querySelector('.os-nt-card');
+        const titleInput = div.querySelector('[data-nt-f="title"]');
+        const contentArea = div.querySelector('[data-nt-f="content"]');
+        const preview_el = div.querySelector('.os-nt-preview');
+        // Click anywhere on the collapsed card (not on input/button/textarea) to expand
+        card.addEventListener('click', e => {
+          if (e.target === titleInput || e.target === contentArea || e.target.tagName === 'BUTTON') return;
+          card.classList.toggle('os-nt-collapsed');
+        });
+        function updateField(f, v) {
+          n[f] = v;
+          n.updated = Date.now();
+          save();
+          if (f === 'content') {
+            const p = (v || '').slice(0, 120).replace(/\n/g, ' ');
+            preview_el.textContent = p + ((v||'').length > 120 ? '…' : '');
+          }
+        }
+        titleInput.addEventListener('input', e => updateField('title', e.target.value));
+        contentArea.addEventListener('input', e => updateField('content', e.target.value));
+        div.querySelector('[data-nt-rm]').addEventListener('click', e => {
+          e.stopPropagation();
+          if (confirm('Delete this note?')) {
+            state.notes = state.notes.filter(x => x.id !== n.id);
+            save(); rerender();
+          }
+        });
+        list.appendChild(div);
+      });
+    }
+    root.querySelector('[data-nt-add]').addEventListener('click', () => {
+      const id = Date.now() + '-' + Math.random().toString(36).slice(2,7);
+      state.notes.unshift({ id, title: '', content: '', ts: Date.now(), updated: Date.now() });
+      save(); rerender();
+      // Focus the new note's title
+      setTimeout(() => {
+        const first = root.querySelector('.os-nt-item .os-nt-title');
+        if (first) { first.focus(); root.querySelector('.os-nt-item .os-nt-card').classList.remove('os-nt-collapsed'); }
+      }, 50);
+    });
+    root.querySelector('[data-nt-search]').addEventListener('input', rerender);
+    rerender();
+  };
+
   // -------- PUBLIC API --------
   const tracked = new Map(); // containerEl -> sectionName
   function renderInto(name, containerOrId) {
@@ -1737,6 +2130,8 @@
     fn(el);
   }
   function renderAll() {
+    // Reconcile linked goals before rendering so UI reflects auto-links
+    if (reconcileLinkedGoals()) save();
     tracked.forEach((name, el) => { try { sections[name](el); } catch (e) {} });
   }
   function refreshFromStorage() { state = load(); renderAll(); }
