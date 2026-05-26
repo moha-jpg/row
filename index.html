@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<script src="os-state.js" defer></script>
 <style>
 :root {
   --text-primary: #FAFAFA;
@@ -600,6 +601,9 @@ body::after {
 
   <h1 class="dash-title">Mohamed Reda's Dashboard</h1>
 
+  <!-- ===== OS addon: Big Domino (the ONE task) ===== -->
+  <div data-os-section="big-domino"></div>
+
   <div class="ticker-row">
     <div class="goal-ticker" id="goalTicker" aria-live="polite" aria-atomic="true">
       <div class="goal-ticker-led"><span class="goal-ticker-led-dot"></span></div>
@@ -638,6 +642,10 @@ body::after {
       <div class="day-ring-hours">8:00 AM – 12:00 AM</div>
     </div>
   </div>
+
+  <!-- ===== OS addons: Daily Checks (streaks) + Non-Zero Day fallback ===== -->
+  <div data-os-section="daily-checks"></div>
+  <div data-os-section="non-zero"></div>
 
   <div class="section">
     <div class="section-title">To Do List</div>

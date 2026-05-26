@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<script src="os-state.js" defer></script>
 <style>
 :root {
   --bg: #050506;
@@ -520,6 +521,14 @@ main {
     <div class="section-title">Water Tracker</div>
     <iframe src="po-water.html" class="water-iframe" loading="lazy" title="Water Tracker"></iframe>
   </section>
+
+  <!-- ===== OS addons: Meals, Quran, Faith goals, Burnout (under "health" umbrella) ===== -->
+  <div style="margin-top: 32px;">
+    <div data-os-section="meals"></div>
+    <div data-os-section="quran"></div>
+    <div data-os-section="faith-goals"></div>
+    <div data-os-section="burnout"></div>
+  </div>
 
   <div class="attribution">// editable template · all data stays in your browser</div>
 </main>
