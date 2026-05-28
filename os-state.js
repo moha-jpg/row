@@ -132,6 +132,97 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   function fmtMoney(n) { return '$' + (n || 0).toLocaleString(); }
+  // Count days in last N days where checkKey was true
+  function countCheckLastDays(checkKey, days) {
+    let count = 0;
+    const d = new Date();
+    for (let i = 0; i < days; i++) {
+      const k = dateKey(d);
+      if (state.dailyChecks[k] && state.dailyChecks[k][checkKey]) count++;
+      d.setDate(d.getDate() - 1);
+    }
+    return count;
+  }
+  // Count days in last N days where dashboard was used (big domino set OR any daily check ticked)
+  function dashboardUsedLastDays(days) {
+    let count = 0;
+    const d = new Date();
+    for (let i = 0; i < days; i++) {
+      const k = dateKey(d);
+      const dc = state.dailyChecks[k];
+      if (state.bigDomino[k] || (dc && Object.values(dc).some(v => v))) count++;
+      d.setDate(d.getDate() - 1);
+    }
+    return count;
+  }
+  // Average sleep across last N weeks
+  function avgSleepLastWeeks(weeks) {
+    let sum = 0, n = 0;
+    const d = new Date();
+    for (let i = 0; i < weeks; i++) {
+      const w = isoWeekOf(d);
+      const v = state.weeklyMetrics[w]?.sleep;
+      if (typeof v === 'number') { sum += v; n++; }
+      d.setDate(d.getDate() - 7);
+    }
+    return n ? sum / n : 0;
+  }
+  // Count gym sessions in a specific ISO week
+  function gymCountForWeek(targetWeek) {
+    let n = 0;
+    Object.entries(state.dailyChecks).forEach(([dk, vals]) => {
+      if (vals && vals.gym) {
+        try { if (isoWeekOf(new Date(dk + 'T12:00:00')) === targetWeek) n++; } catch (e) {}
+      }
+    });
+    return n;
+  }
+  // Count consecutive weeks (back from current) hitting gym target
+  function gymConsecutiveWeeks(target) {
+    let count = 0;
+    const d = new Date();
+    for (let i = 0; i < 52; i++) {
+      const w = isoWeekOf(d);
+      if (gymCountForWeek(w) >= target) count++;
+      else break;
+      d.setDate(d.getDate() - 7);
+    }
+    return count;
+  }
+  // Burnout signal: avg energy over last N days
+  function avgBurnoutLastDays(metric, days) {
+    let sum = 0, n = 0;
+    const d = new Date();
+    for (let i = 0; i < days; i++) {
+      const k = dateKey(d);
+      const v = state.burnout[k]?.[metric];
+      if (typeof v === 'number') { sum += v; n++; }
+      d.setDate(d.getDate() - 1);
+    }
+    return n ? sum / n : 0;
+  }
+  function daysSinceRecovery() {
+    if (!state.recoveryDays.length) return Infinity;
+    const last = new Date(state.recoveryDays[state.recoveryDays.length - 1] + 'T00:00:00');
+    const today = new Date(dateKey() + 'T00:00:00');
+    return Math.max(0, Math.floor((today - last) / 86400000));
+  }
+  // Decisions due for review
+  function dueDecisions() {
+    const today = dateKey();
+    return (state.decisions || []).filter(d =>
+      d.status === 'pending' && d.reviewDate && d.reviewDate <= today
+    );
+  }
+  // Open loops still open
+  function openLoopsCount() {
+    return (state.loops || []).filter(l => !l.done).length;
+  }
+  // System Health breaking items
+  function breakingSystems() {
+    return (state.systems || []).filter(s => s.status === 'breaking');
+  }
+
   function getStreak(checkKey) {
     let count = 0;
     const d = new Date();
@@ -626,6 +717,53 @@
 .os-fg-spark { height: 36px; color: #d4af37; opacity: 0.85; }
 .os-fg-spark svg { display: block; width: 100%; height: 100%; }
 
+/* ===== STREAK STRIP ===== */
+.os-streaks { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; padding: 10px 12px; background: rgba(20,20,26,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+.os-streaks-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #76746E; display: flex; align-items: center; padding-right: 4px; }
+.os-streak-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(212,175,55,0.10); border: 1px solid rgba(212,175,55,0.25); border-radius: 999px; font-size: 11px; color: #B8B6B0; font-variant-numeric: tabular-nums; }
+.os-streak-chip.hot { background: rgba(212,175,55,0.18); color: #e6c068; border-color: rgba(212,175,55,0.5); }
+.os-streak-chip.zero { background: rgba(20,20,26,0.6); color: #76746E; border-color: rgba(255,255,255,0.06); }
+.os-streak-chip-name { font-weight: 600; }
+.os-streak-chip-days { color: #d4af37; font-weight: 700; }
+.os-streak-chip.zero .os-streak-chip-days { color: #5a5a5a; }
+
+/* ===== DUE DECISIONS / OPEN LOOPS / BURNOUT ALERT (banners on Today) ===== */
+.os-alerts { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.os-alert { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; font-size: 13px; transition: all 0.15s; text-decoration: none; }
+.os-alert-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+.os-alert-body { flex: 1; line-height: 1.4; }
+.os-alert-title { font-weight: 700; font-size: 13px; }
+.os-alert-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.os-alert-cta { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding-left: 8px; }
+.os-alert.danger { background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.25); color: #FAFAFA; }
+.os-alert.danger .os-alert-icon { background: rgba(255,107,107,0.20); color: #FF6B6B; }
+.os-alert.danger .os-alert-cta { color: #FF6B6B; }
+.os-alert.warn { background: rgba(242,192,99,0.06); border: 1px solid rgba(242,192,99,0.25); color: #FAFAFA; }
+.os-alert.warn .os-alert-icon { background: rgba(242,192,99,0.20); color: #F2C063; }
+.os-alert.warn .os-alert-cta { color: #F2C063; }
+.os-alert.info { background: rgba(125,211,252,0.05); border: 1px solid rgba(125,211,252,0.20); color: #FAFAFA; }
+.os-alert.info .os-alert-icon { background: rgba(125,211,252,0.18); color: #7DD3FC; }
+.os-alert.info .os-alert-cta { color: #7DD3FC; }
+.os-alert:hover { transform: translateY(-1px); }
+
+/* ===== TODAY PULSE (combined glance) ===== */
+.os-pulse { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; padding: 14px 16px; margin: 12px 0; background: linear-gradient(135deg, rgba(20,20,26,0.85), rgba(13,13,16,0.65)); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; align-items: center; }
+.os-pulse-ring { width: 56px; height: 56px; position: relative; }
+.os-pulse-ring svg { transform: rotate(-90deg); }
+.os-pulse-ring-bg { stroke: rgba(255,255,255,0.08); }
+.os-pulse-ring-fg { stroke: #d4af37; stroke-linecap: round; transition: stroke-dashoffset 0.6s; filter: drop-shadow(0 0 4px rgba(212,175,55,0.4)); }
+.os-pulse-ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #e6c068; font-variant-numeric: tabular-nums; }
+.os-pulse-body { min-width: 0; }
+.os-pulse-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #76746E; margin-bottom: 4px; }
+.os-pulse-status { font-size: 14px; font-weight: 600; color: #FAFAFA; line-height: 1.3; }
+.os-pulse-detail { font-size: 11px; color: #76746E; margin-top: 4px; }
+.os-pulse-meta { text-align: right; font-size: 10px; color: #76746E; letter-spacing: 0.08em; text-transform: uppercase; }
+.os-pulse-meta-num { font-size: 18px; font-weight: 700; color: #FAFAFA; font-variant-numeric: tabular-nums; }
+
+/* ===== Auto-checked Level criterion indicator ===== */
+.os-fg-goal.auto, .lv-criteria-list li.auto { position: relative; }
+.lv-auto-badge { font-size: 8px; font-weight: 800; letter-spacing: 0.18em; padding: 2px 5px; background: rgba(125,211,252,0.15); color: #7DD3FC; border-radius: 3px; margin-left: 6px; }
+
 /* ===== KPI REVENUE TREND ===== */
 .os-kpi-trend { background: rgba(20,20,26,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
 .os-kpi-trend-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -650,23 +788,42 @@
   // -------- SECTION RENDERERS --------
   const sections = {};
 
-  // ===== Auto-link goals: runs at load + after every state change =====
+  // ===== Auto-link goals + levels: runs at load + after every state change =====
+  // Only sets criteria to TRUE based on real data — never unchecks. User can always uncheck manually.
   function reconcileLinkedGoals() {
+    let changed = false;
     // Mom's house paid >= target → yearly goal done
     const mh = state.momsHouse;
     if (mh && mh.target > 0 && mh.paid >= mh.target) {
       const g = state.yearlyGoals.find(x => x.id === 'g5');
-      if (g && !g.done) { g.done = true; return true; }
+      if (g && !g.done) { g.done = true; changed = true; }
     }
-    // Driving license — could auto-check by date passing May 14 if you mark it
-    // (No data signal yet — manual check stays)
     // 70kg weight → goal done if latest weight >= 70
     const w = latestWeight();
     if (w >= 70) {
       const g = state.yearlyGoals.find(x => x.id === 'g7');
-      if (g && !g.done) { g.done = true; return true; }
+      if (g && !g.done) { g.done = true; changed = true; }
     }
-    return false;
+    // Levels — auto-check criteria from real data (Level 1 only for now — most have real signals)
+    if (state.levels && state.levels.defs && state.levels.checks) {
+      const lvl1 = state.levels.defs.find(d => d.id === 1);
+      if (lvl1) {
+        const checks = state.levels.checks[1] || [];
+        // Criterion 0: '4 gym sessions/week for 3 consecutive weeks'
+        const gymTarget = state.fitnessGoals?.gymWeeklyTarget || 4;
+        if (gymConsecutiveWeeks(gymTarget) >= 3 && !checks[0]) { checks[0] = true; changed = true; }
+        // Criterion 1: 'Fajr on time 20/28 days (one month)'
+        if (countCheckLastDays('fajr', 28) >= 20 && !checks[1]) { checks[1] = true; changed = true; }
+        // Criterion 2: 'Sleep avg 8.0+ hr for 4 weeks'
+        if (avgSleepLastWeeks(4) >= 8.0 && !checks[2]) { checks[2] = true; changed = true; }
+        // Criterion 3: 'Dashboard used 20/28 days'
+        if (dashboardUsedLastDays(28) >= 20 && !checks[3]) { checks[3] = true; changed = true; }
+        // Criterion 4: 'War Room kept ≤3 priorities the whole month' — code caps at 3, so structurally always true
+        if ((state.warRoom?.priorities?.length || 0) <= 3 && !checks[4]) { checks[4] = true; changed = true; }
+        state.levels.checks[1] = checks;
+      }
+    }
+    return changed;
   }
 
   // ===== MOM'S HOUSE =====
@@ -2032,6 +2189,160 @@
     }
     root.querySelector('[data-qc-add]').addEventListener('click', add);
     root.querySelector('[data-qc-input]').addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+  };
+
+  // ===== STREAK STRIP =====
+  sections['streak-strip'] = function (root) {
+    const items = [
+      { key: 'fajr', label: 'Fajr' },
+      { key: 'gym', label: 'Gym' },
+      { key: 'zipcodes', label: 'Zip' },
+      { key: 'aileads', label: 'Leads' },
+      { key: 'loop', label: 'Loop' },
+      { key: 'win', label: 'Win' }
+    ];
+    root.className = 'os-streaks';
+    root.dataset.section = 'streak-strip';
+    root.innerHTML = `
+      <span class="os-streaks-tag">Streaks ·</span>
+      ${items.map(it => {
+        const s = getStreak(it.key);
+        const cls = s === 0 ? 'zero' : (s >= 7 ? 'hot' : '');
+        return `<span class="os-streak-chip ${cls}"><span class="os-streak-chip-name">${it.label}</span><span class="os-streak-chip-days">${s}d</span></span>`;
+      }).join('')}
+    `;
+  };
+
+  // ===== TODAY PULSE — overall completion + status =====
+  sections['today-pulse'] = function (root) {
+    const k = todayKey();
+    // Compute completion: 6 daily checks + 7 meals + 4 reset + 5 shutdown + bigDomino + 3 priorities done
+    const dc = state.dailyChecks[k] || {};
+    const meals = state.meals[k] || {};
+    const reset = state.resetBlock[k] || {};
+    const shut = state.nightShutdown[k] || {};
+    const prios = state.priorities[k] || { done: [false, false, false] };
+
+    const dailyChecks = ['fajr','gym','zipcodes','aileads','loop','win'].filter(x => dc[x]).length;
+    const mealCount = ['breakfast','amSnack1','lunch','amSnack2','pmSnack1','pmSnack2','dinner'].filter(x => meals[x]).length;
+    const resetCount = ['shower','meal','walk','noPhone'].filter(x => reset[x]).length;
+    const shutCount = ['inbox','tomorrow','water','skincare','clothes'].filter(x => shut[x]).length;
+    const bigD = state.bigDomino[k] ? 1 : 0;
+    const prioDone = (prios.done || []).filter(Boolean).length;
+
+    // Total possible: 6 + 7 + 4 + 5 + 1 + 3 = 26
+    const total = 26;
+    const done = dailyChecks + mealCount + resetCount + shutCount + bigD + prioDone;
+    const pct = Math.min(100, Math.round((done / total) * 100));
+
+    // Status text by % bucket
+    let status, detail;
+    const hr = new Date().getHours();
+    if (pct === 0 && hr < 12) { status = "Fresh start — set your Big Domino"; detail = "0 of 26 done · the day is yours"; }
+    else if (pct < 25) { status = "Just getting started"; detail = `${done}/${total} done · ${hr < 12 ? "morning lift-off" : "let's get moving"}`; }
+    else if (pct < 50) { status = "Building momentum"; detail = `${done}/${total} done · don't stall`; }
+    else if (pct < 75) { status = "Solid progress"; detail = `${done}/${total} done · keep going`; }
+    else if (pct < 100) { status = "Almost dialed in"; detail = `${done}/${total} done · close it out`; }
+    else { status = "Full day delivered"; detail = `${done}/${total} done · this is who you're becoming`; }
+
+    const circ = 2 * Math.PI * 23; // r=23
+    const dash = circ;
+    const offset = circ - (pct / 100) * circ;
+
+    root.className = 'os-pulse';
+    root.dataset.section = 'today-pulse';
+    root.innerHTML = `
+      <div class="os-pulse-ring">
+        <svg width="56" height="56">
+          <circle class="os-pulse-ring-bg" cx="28" cy="28" r="23" fill="none" stroke-width="4"/>
+          <circle class="os-pulse-ring-fg" cx="28" cy="28" r="23" fill="none" stroke-width="4" stroke-dasharray="${dash}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="os-pulse-ring-text">${pct}%</div>
+      </div>
+      <div class="os-pulse-body">
+        <div class="os-pulse-tag">Today's Pulse</div>
+        <div class="os-pulse-status">${escapeHtml(status)}</div>
+        <div class="os-pulse-detail">${escapeHtml(detail)}</div>
+      </div>
+      <div class="os-pulse-meta">
+        <div class="os-pulse-meta-num">${dailyChecks}/6</div>
+        <div>checks</div>
+      </div>
+    `;
+  };
+
+  // ===== ALERTS (decisions due / burnout / breaking systems / open loops) =====
+  sections['alerts'] = function (root) {
+    const alerts = [];
+
+    // Decisions due for review
+    const due = dueDecisions();
+    if (due.length) {
+      alerts.push({
+        cls: 'warn', icon: 'D',
+        title: `${due.length} decision${due.length > 1 ? 's' : ''} due for review`,
+        sub: due.slice(0, 2).map(d => (d.decision || 'Untitled').slice(0, 60)).join(' · '),
+        cta: 'Strategy →', href: 'strategy.html'
+      });
+    }
+
+    // Burnout: avg energy last 3 days < 2.5
+    const eAvg = avgBurnoutLastDays('energy', 3);
+    if (eAvg > 0 && eAvg < 2.5) {
+      alerts.push({
+        cls: 'danger', icon: '!',
+        title: 'Energy slipping',
+        sub: `Avg energy last 3 days: ${eAvg.toFixed(1)}/5 — schedule recovery`,
+        cta: 'Health →', href: 'health.html'
+      });
+    }
+    // Burnout: days since recovery > 14
+    const dsr = daysSinceRecovery();
+    if (dsr !== Infinity && dsr > 14) {
+      alerts.push({
+        cls: 'warn', icon: 'R',
+        title: 'Recovery overdue',
+        sub: `${dsr} days since last real recovery — book a day off`,
+        cta: 'Mark recovery →', href: 'health.html'
+      });
+    }
+
+    // System health breaking
+    const breaking = breakingSystems();
+    if (breaking.length) {
+      alerts.push({
+        cls: 'danger', icon: 'S',
+        title: `${breaking.length} system${breaking.length > 1 ? 's' : ''} breaking`,
+        sub: breaking.slice(0, 2).map(s => s.name).join(' · '),
+        cta: 'Strategy →', href: 'strategy.html'
+      });
+    }
+
+    // Open loops gentle nudge (>=5)
+    const ol = openLoopsCount();
+    if (ol >= 5) {
+      alerts.push({
+        cls: 'info', icon: 'O',
+        title: `${ol} open loops`,
+        sub: 'Close one. Energy lives there.',
+        cta: 'Brain →', href: 'brain.html'
+      });
+    }
+
+    root.className = 'os-alerts';
+    root.dataset.section = 'alerts';
+    if (!alerts.length) { root.innerHTML = ''; root.style.display = 'none'; return; }
+    root.style.display = '';
+    root.innerHTML = alerts.map(a => `
+      <a class="os-alert ${a.cls}" href="${a.href}">
+        <span class="os-alert-icon">${a.icon}</span>
+        <div class="os-alert-body">
+          <div class="os-alert-title">${escapeHtml(a.title)}</div>
+          <div class="os-alert-sub">${escapeHtml(a.sub)}</div>
+        </div>
+        <span class="os-alert-cta">${escapeHtml(a.cta)}</span>
+      </a>
+    `).join('');
   };
 
   // ===== NOTES (long-form, on Brain page) =====
